@@ -143,7 +143,16 @@ namespace PurrNet.Steam
 
         private void OnRemoteConnected(int obj)
         {
+            // Ignorer l'entrée de loopback/host souvent signalée comme id 0
+            if (obj == 0)
+                return;
+
             string _displayName = GetRemoteDisplayNameFromId(obj);
+            string _localName = GetLocalDisplayName();
+
+            // Ne pas ajouter si c'est en fait le même nom que le host
+            if (_displayName == _localName)
+                return;
 
             if (!Players.Contains(_displayName))
                 Players.Add(_displayName);
@@ -154,8 +163,12 @@ namespace PurrNet.Steam
 
         private void OnRemoteDisconnected(int obj)
         {
-            string _displayName = GetRemoteDisplayNameFromId(obj);
-            Players.RemoveAll(_P => _P == _displayName);
+            // Ignorer l'entrée de loopback/host
+            if (obj == 0)
+                return;
+
+            string displayName = GetRemoteDisplayNameFromId(obj);
+            Players.RemoveAll(p => p == displayName);
             _connections.Remove(new Connection(obj));
             onDisconnected?.Invoke(new Connection(obj), DisconnectReason.ClientRequest, true);
         }
