@@ -9,6 +9,9 @@
 using System.Collections.Generic;
 using PurrNet.Transports;
 using UnityEngine;
+#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
+using Steamworks;
+#endif
 
 namespace PurrNet.Steam
 {
@@ -20,6 +23,7 @@ namespace PurrNet.Steam
 
         [SerializeField] private bool _dedicatedServer;
         [SerializeField] private bool _peerToPeer = true;
+        [SerializeField] private List<string> Players = new List<string>();
 
         [Header("Client Settings")] [SerializeField]
         private string _address = "127.0.0.1";
@@ -139,12 +143,19 @@ namespace PurrNet.Steam
 
         private void OnRemoteConnected(int obj)
         {
+            string _displayName = GetRemoteDisplayNameFromId(obj);
+
+            if (!Players.Contains(_displayName))
+                Players.Add(_displayName);
+
             _connections.Add(new Connection(obj));
             onConnected?.Invoke(new Connection(obj), true);
         }
 
         private void OnRemoteDisconnected(int obj)
         {
+            string _displayName = GetRemoteDisplayNameFromId(obj);
+            Players.RemoveAll(_P => _P == _displayName);
             _connections.Remove(new Connection(obj));
             onDisconnected?.Invoke(new Connection(obj), DisconnectReason.ClientRequest, true);
         }
@@ -159,6 +170,7 @@ namespace PurrNet.Steam
             if (listenerState != ConnectionState.Disconnected)
                 listenerState = ConnectionState.Disconnecting;
             _server?.Stop();
+            Players.Clear();
             listenerState = ConnectionState.Disconnected;
             _server = null;
         }
@@ -186,11 +198,21 @@ namespace PurrNet.Steam
 
         private void OnClientStateChanged(ConnectionState state)
         {
+            string _localName = GetLocalDisplayName();
             if (state == ConnectionState.Connected)
+            {
+                if (!Players.Contains(_localName))
+                {
+                    Players.Add(_localName);
+                }
                 onConnected?.Invoke(new Connection(0), false);
+            }
 
             if (state == ConnectionState.Disconnected)
+            {
+                Players.RemoveAll(_P => _P == _localName);
                 onDisconnected?.Invoke(new Connection(0), DisconnectReason.ClientRequest, false);
+            }
 
             clientState = state;
         }
@@ -208,6 +230,9 @@ namespace PurrNet.Steam
 
             _client.Stop();
             _client = null;
+            
+            string _localName = GetLocalDisplayName();
+            Players.RemoveAll(_P => _P == _localName);
         }
 
         public void RaiseDataReceived(Connection conn, ByteData data, bool asServer)
@@ -259,6 +284,45 @@ namespace PurrNet.Steam
         {
             _server?.SendMessages();
             _client?.SendMessages();
+        }
+        
+        private string GetRemoteDisplayNameFromId(int obj)
+        {
+            string display = obj.ToString();
+#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
+            try
+            {
+                var steamId = new CSteamID((ulong)obj);
+                string friendName = SteamFriends.GetFriendPersonaName(steamId);
+                if (!string.IsNullOrEmpty(friendName))
+                    display = friendName;
+            }
+            catch
+            {
+                // fallback to id string
+            }
+#endif
+            return display;
+        }
+        
+        private string GetLocalDisplayName()
+        {
+#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
+            try
+            {
+                if (SteamAPI.IsSteamRunning())
+                {
+                    string name = SteamFriends.GetPersonaName();
+                    if (!string.IsNullOrEmpty(name))
+                        return name;
+                }
+            }
+            catch
+            {
+                // fallback below
+            }
+#endif
+            return "LocalClient";
         }
     }
 }

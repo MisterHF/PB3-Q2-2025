@@ -6,9 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="659ba532-42dd-4a0a-89eb-7c2d00b4eb78" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Runtime/Managers/NetworkManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Runtime/Managers/NetworkManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefab/UIPrefab/PrefabPlayerID.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefab/UIPrefab/PrefabPlayerID.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Feat-Multiplayer.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Feat-Multiplayer.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/EditorBuildSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/EditorBuildSettings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +25,13 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d35f3fd492a14898b9e7cb0372b7ba3d1e0200/61/64193822/GameObject.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Runtime/Managers/NetworkManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Script/LobbyManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Script/LobbyUserCache.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Script/SteamAvatarFetcher.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Script/SteamAvatarSteamworks.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.rlabrecque.steamworks.net@4f4794de2ce8/Runtime/types/SteamClientPublic/CSteamID.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -53,6 +61,17 @@
   }
 }]]></component>
   <component name="RunManager" selected="Attach to Unity Editor.Attach to Unity Editor">
+    <configuration name="Standalone Player" type="RunUnityExe" factoryName="Unity Executable">
+      <option name="EXE_PATH" value="$PROJECT_DIR$/../Build\Q2-Lethal-Company.exe" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="J:\Cours\Quete 2 LethalCompany\Build" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="ENV_FILE_PATHS" value="" />
+      <option name="REDIRECT_INPUT_PATH" value="" />
+      <option name="PTY_MODE" value="Auto" />
+      <method v="2" />
+    </configuration>
     <configuration name="Start Unity" type="RunUnityExe" factoryName="Unity Executable">
       <option name="EXE_PATH" value="C:\Program Files\Unity\Hub\Editor\6000.0.60f1\Editor\Unity.exe" />
       <option name="PROGRAM_PARAMETERS" value="-projectPath &quot;J:\Cours\Quete 2 LethalCompany\PB3-Q2-2025&quot; -debugCodeOptimization" />
@@ -89,10 +108,10 @@
       <option name="useMixedMode" value="false" />
       <method v="2" />
     </configuration>
-    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" ignored-value-for-modified-check="39444">
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" ignored-value-for-modified-check="44560">
       <option name="allowRunningInParallel" value="false" />
       <option name="listenPortForConnections" value="false" />
-      <option name="pid" value="39444" />
+      <option name="pid" value="44560" />
       <option name="projectPathOnTarget" />
       <option name="runtimes">
         <list>
@@ -115,7 +134,7 @@
       <updated>1761146038517</updated>
       <workItem from="1761146041601" duration="185000" />
       <workItem from="1761146307075" duration="1397000" />
-      <workItem from="1761209083742" duration="4712000" />
+      <workItem from="1761209083742" duration="16924000" />
     </task>
     <servers />
   </component>
