@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 using PurrNet;
+using PurrNet.Steam;
 using Steamworks;
 using TMPro;
 using UnityEngine;
@@ -20,14 +21,22 @@ namespace Script
         public Transform Viewport;
         public Sprite DefaultAvatar;
 
+        private SteamTransport transport;
         private void OnEnable()
         {
-            NetworkManager.main.onPlayerJoined += MainOnonPlayerJoined;
+            transport = NetworkManager.main.transport as SteamTransport;
+            transport.OnPlayerConnected += TransportOnOnPlayerConnected;
+        }
+
+        private void TransportOnOnPlayerConnected(string _Arg1, bool _Arg2)
+        {
+            GameObject _Player = Instantiate(PlayerPrefabUI, Viewport.transform);
+            _Player.transform.GetComponentInChildren<TextMeshProUGUI>().text = _Arg1;
         }
 
         private void OnDisable()
         {
-            NetworkManager.main.onPlayerJoined -= MainOnonPlayerJoined;
+            transport.OnPlayerConnected -= TransportOnOnPlayerConnected;
         }
 
         private void MainOnonPlayerJoined(PlayerID _Player, bool _IsReconnect, bool _AsServer)

@@ -6,8 +6,8 @@
 #define STEAMWORKS_NET_PACKAGE
 #endif
 
+using System;
 using System.Collections.Generic;
-using System.Text;
 using PurrNet.Transports;
 using UnityEngine;
 #if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
@@ -25,8 +25,7 @@ namespace PurrNet.Steam
         [SerializeField] private bool _dedicatedServer;
         [SerializeField] private bool _peerToPeer = true;
         [SerializeField] private List<string> Players = new List<string>();
-        private const string HANDSHAKE_PREFIX = "HS|";
-        private readonly Dictionary<int, string> _connNames = new Dictionary<int, string>();
+        public event Action<string, bool> OnPlayerConnected;
 
         [Header("Client Settings")] [SerializeField]
         private string _address = "127.0.0.1";
@@ -157,6 +156,8 @@ namespace PurrNet.Steam
             if (_displayName == _localName)
                 return;
 
+            OnPlayerConnected?.Invoke(_displayName, true);
+
             if (!Players.Contains(_displayName))
                 Players.Add(_displayName);
 
@@ -166,133 +167,20 @@ namespace PurrNet.Steam
 
         private void OnRemoteDisconnected(int obj)
         {
+            // Ignorer l'entrée de loopback/host
             if (obj == 0)
                 return;
 
-            // retirer par mapping si présent
-            if (_connNames.TryGetValue(obj, out var name))
-            {
-                Players.RemoveAll(p => p == name);
-                _connNames.Remove(obj);
-            }
-            else
-            {
-                string displayName = GetRemoteDisplayNameFromId(obj);
-                Players.RemoveAll(p => p == displayName);
-            }
-
+            string displayName = GetRemoteDisplayNameFromId(obj);
+            Players.RemoveAll(p => p == displayName);
             _connections.Remove(new Connection(obj));
             onDisconnected?.Invoke(new Connection(obj), DisconnectReason.ClientRequest, true);
         }
 
-
-        private byte[] GetBytesFromByteData(ByteData data)
-{
-    try
-    {
-        var type = data.GetType();
-
-        // Try instance method ToArray()
-        var m = type.GetMethod("ToArray",
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance, null,
-            System.Type.EmptyTypes, null);
-        if (m != null)
-        {
-            var res = m.Invoke(data, null) as byte[];
-            if (res != null) return res;
-        }
-
-        // Try instance method GetBytes()
-        m = type.GetMethod("GetBytes",
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-        if (m != null)
-        {
-            var res = m.Invoke(data, null) as byte[];
-            if (res != null) return res;
-        }
-
-        // Try common property/field names
-        string[] names = { "Bytes", "bytes", "Data", "data", "Buffer", "buffer", "Raw", "raw" };
-        foreach (var n in names)
-        {
-            var p = type.GetProperty(n,
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            if (p != null)
-            {
-                var val = p.GetValue(data);
-                if (val is byte[] bb) return bb;
-                if (val is System.Array arr)
-                {
-                    try
-                    {
-                        var outArr = new byte[arr.Length];
-                        for (int i = 0; i < arr.Length; i++) outArr[i] = System.Convert.ToByte(arr.GetValue(i));
-                        return outArr;
-                    }
-                    catch { /* continue */ }
-                }
-            }
-
-            var f = type.GetField(n,
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            if (f != null)
-            {
-                var val = f.GetValue(data);
-                if (val is byte[] bb2) return bb2;
-                if (val is System.Array arr2)
-                {
-                    try
-                    {
-                        var outArr2 = new byte[arr2.Length];
-                        for (int i = 0; i < arr2.Length; i++) outArr2[i] = System.Convert.ToByte(arr2.GetValue(i));
-                        return outArr2;
-                    }
-                    catch { /* continue */ }
-                }
-            }
-        }
-
-        // Fallback: use ToString() bytes
-        return System.Text.Encoding.UTF8.GetBytes(data.ToString() ?? "");
-    }
-    catch
-    {
-        return System.Array.Empty<byte>();
-    }
-}
-
         private void OnServerData(int conn, ByteData data)
         {
-            try
-            {
-                var bytes = GetBytesFromByteData(data);
-                if (bytes.Length > 0)
-                {
-                    var msg = System.Text.Encoding.UTF8.GetString(bytes);
-                    if (msg.StartsWith(HANDSHAKE_PREFIX))
-                    {
-                        var payload = msg.Substring(HANDSHAKE_PREFIX.Length);
-                        var parts = payload.Split(new[] { '|' }, 2);
-                        string steamIdPart = parts.Length > 0 ? parts[0] : "";
-                        string namePart = parts.Length > 1 ? parts[1] : steamIdPart;
-
-                        // enregistrer mapping et ajouter au Players si besoin
-                        _connNames[conn] = namePart;
-                        if (!Players.Contains(namePart))
-                            Players.Add(namePart);
-
-                        return; // ne pas propager ce message plus loin
-                    }
-                }
-            }
-            catch
-            {
-                // fallback : continuer la logique normale
-            }
-
             onDataReceived?.Invoke(new Connection(conn), data, true);
         }
-
 
         public void StopListening()
         {
@@ -328,34 +216,15 @@ namespace PurrNet.Steam
         private void OnClientStateChanged(ConnectionState state)
         {
             string _localName = GetLocalDisplayName();
+            Debug.Log(_localName);
             if (state == ConnectionState.Connected)
             {
-                // envoyer handshake au serveur avec SteamID si possible
-#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
-                try
-                {
-                    ulong steamId = SteamUser.GetSteamID().m_SteamID;
-                    string name = SteamFriends.GetPersonaName() ?? _localName;
-                    string payload = HANDSHAKE_PREFIX + steamId + "|" + name;
-                    var bytes = Encoding.UTF8.GetBytes(payload);
-                    var bd = new ByteData(bytes);
-                    SendToServer(bd, Channel.ReliableOrdered);
-                }
-                catch
-                {
-                    // fallback: envoyer seulement le nom local
-                    var bytes = Encoding.UTF8.GetBytes(HANDSHAKE_PREFIX + "0|" + _localName);
-                    var bd = new ByteData(bytes);
-                    SendToServer(bd, Channel.ReliableOrdered);
-                }
-#else
-        var bytes = Encoding.UTF8.GetBytes(HANDSHAKE_PREFIX + "0|" + _localName);
-        var bd = new ByteData(bytes);
-        SendToServer(bd, Channel.ReliableOrdered);
-#endif
-
                 if (!Players.Contains(_localName))
+                {
                     Players.Add(_localName);
+                }
+
+                OnPlayerConnected?.Invoke(_localName, true);
                 onConnected?.Invoke(new Connection(0), false);
             }
 
@@ -384,7 +253,6 @@ namespace PurrNet.Steam
 
             string _localName = GetLocalDisplayName();
             Players.RemoveAll(_P => _P == _localName);
-            // pas de mapping côté client à nettoyer normalement
         }
 
         public void RaiseDataReceived(Connection conn, ByteData data, bool asServer)

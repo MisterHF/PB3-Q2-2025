@@ -6,7 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="659ba532-42dd-4a0a-89eb-7c2d00b4eb78" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/PurrNet.Steam.Runtime.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/PurrNet.Steam.Runtime.asmdef" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +23,8 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d35f3fd492a14898b9e7cb0372b7ba3d1e0200/61/64193822/GameObject.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamClient.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Runtime/Managers/NetworkManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/LobbyManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/LobbyUserCache.cs" root0="FORCE_HIGHLIGHTING" />
@@ -130,7 +134,7 @@
       <updated>1761146038517</updated>
       <workItem from="1761146041601" duration="185000" />
       <workItem from="1761146307075" duration="1397000" />
-      <workItem from="1761209083742" duration="18703000" />
+      <workItem from="1761209083742" duration="21070000" />
     </task>
     <servers />
   </component>
