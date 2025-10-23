@@ -32,10 +32,24 @@ namespace Script
 
         private void TransportOnOnPlayerConnected(List<string> _List, bool _Arg2)
         {
+            if (Viewport == null || PlayerPrefabUI == null)
+                return;
+
+            // Détruire tous les enfants du viewport (boucle inverse)
+            for (int i = Viewport.childCount - 1; i >= 0; i--)
+            {
+                var child = Viewport.GetChild(i);
+                if (child != null)
+                    Destroy(child.gameObject);
+            }
+
+            // Recréer la liste UI
             foreach (var _item in _List)
             {
-                GameObject _player = Instantiate(PlayerPrefabUI, Viewport.transform);
-                _player.transform.GetComponentInChildren<TextMeshProUGUI>().text = _item;
+                GameObject _player = Instantiate(PlayerPrefabUI, Viewport);
+                var text = _player.GetComponentInChildren<TextMeshProUGUI>();
+                if (text != null)
+                    text.text = _item;
             }
         }
 
