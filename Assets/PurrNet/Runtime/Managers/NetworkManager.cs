@@ -1436,6 +1436,7 @@ namespace PurrNet
                 StopCoroutine(_clientCoroutine);
                 _clientCoroutine = null;
             }
+            
 
             _clientCoroutine = StartCoroutine(StartClientCoroutine());
         }
