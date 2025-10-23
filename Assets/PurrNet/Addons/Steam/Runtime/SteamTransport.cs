@@ -364,9 +364,8 @@ namespace PurrNet.Steam
             try
             {
                 var steamId = new CSteamID((ulong)obj);
-                string friendName = SteamFriends.GetFriendPersonaName(steamId);
-                if (!string.IsNullOrEmpty(friendName))
-                    display = friendName;
+                // délègue à la surcharge qui prend un CSteamID
+                return GetRemoteDisplayNameFromId(steamId);
             }
             catch
             {
@@ -375,7 +374,6 @@ namespace PurrNet.Steam
 #endif
             return display;
         }
-
         private string GetLocalDisplayName()
         {
 #if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
@@ -383,6 +381,7 @@ namespace PurrNet.Steam
             {
                 if (SteamAPI.IsSteamRunning())
                 {
+                    // utilisation correcte pour récupérer le nom local
                     string name = SteamFriends.GetPersonaName();
                     Debug.Log(name);
 
@@ -396,6 +395,23 @@ namespace PurrNet.Steam
             }
 #endif
             return "LocalClient";
+        }
+        private string GetRemoteDisplayNameFromId(CSteamID steamId)
+        {
+            string display = steamId.ToString();
+#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
+            try
+            {
+                string friendName = SteamFriends.GetFriendPersonaName(steamId);
+                if (!string.IsNullOrEmpty(friendName))
+                    display = friendName;
+            }
+            catch
+            {
+                // fallback to steamId string
+            }
+#endif
+            return display;
         }
     }
 }
