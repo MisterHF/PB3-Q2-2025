@@ -20,6 +20,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d35f3fd492a14898b9e7cb0372b7ba3d1e0200/61/64193822/GameObject.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d35f3fd492a14898b9e7cb0372b7ba3d1e0200/69/5f2ddc23/MonoBehaviour.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamClient.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Runtime/Managers/NetworkManager.cs" root0="FORCE_HIGHLIGHTING" />
@@ -131,7 +132,7 @@
       <updated>1761146038517</updated>
       <workItem from="1761146041601" duration="185000" />
       <workItem from="1761146307075" duration="1397000" />
-      <workItem from="1761209083742" duration="22477000" />
+      <workItem from="1761209083742" duration="23225000" />
     </task>
     <servers />
   </component>
