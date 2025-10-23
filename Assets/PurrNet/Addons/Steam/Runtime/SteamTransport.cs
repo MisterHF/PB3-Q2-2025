@@ -161,8 +161,12 @@ namespace PurrNet.Steam
             if (!Players.Contains(_displayName))
                 Players.Add(_displayName);
 
-            _connections.Add(new Connection(obj));
-            onConnected?.Invoke(new Connection(obj), true);
+            var connection = new Connection(obj);
+            _connections.Add(connection);
+            onConnected?.Invoke(connection, true);
+
+            // envoyer la liste mise à jour à tous (inclut le nouveau client)
+            BroadcastPlayerList();
         }
 
         private void OnRemoteDisconnected(int obj)
@@ -175,6 +179,9 @@ namespace PurrNet.Steam
             Players.RemoveAll(p => p == displayName);
             _connections.Remove(new Connection(obj));
             onDisconnected?.Invoke(new Connection(obj), DisconnectReason.ClientRequest, true);
+
+            // informer les clients restants
+            BroadcastPlayerList();
         }
 
         private void OnServerData(int conn, ByteData data)
@@ -212,11 +219,29 @@ namespace PurrNet.Steam
         {
             onDataReceived?.Invoke(new Connection(-1), data, false);
         }
+        private void BroadcastPlayerList()
+        {
+            if (_server == null)
+                return;
 
+            // Format simple : "PLAYERS:name1|name2|name3"
+            string payload = "PLAYERS:" + string.Join("|", Players);
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(payload);
+
+            // Création de ByteData à partir du tableau d'octets (adapter si l'API ByteData diffère)
+            var data = new ByteData(bytes);
+
+            foreach (var conn in _connections)
+            {
+                if (!conn.isValid)
+                    continue;
+
+                SendToClient(conn, data, Channel.ReliableOrdered);
+            }
+        }
         private void OnClientStateChanged(ConnectionState state)
         {
             string _localName = GetLocalDisplayName();
-            Debug.Log(_localName);
             if (state == ConnectionState.Connected)
             {
                 if (!Players.Contains(_localName))
@@ -224,8 +249,14 @@ namespace PurrNet.Steam
                     Players.Add(_localName);
                 }
 
+                Debug.Log(_localName);
+
                 OnPlayerConnected?.Invoke(_localName, true);
                 onConnected?.Invoke(new Connection(0), false);
+
+                // demander/récupérer la liste du serveur nativement : ici on rebroadcast localement
+                // si l'application serveur gère l'envoi, cette ligne côté server enverra la liste automatiquement.
+                // Si vous souhaitez que le client demande explicitement la liste, envoyez une requête au serveur.
             }
 
             if (state == ConnectionState.Disconnected)
@@ -333,6 +364,8 @@ namespace PurrNet.Steam
                 if (SteamAPI.IsSteamRunning())
                 {
                     string name = SteamFriends.GetPersonaName();
+                    Debug.Log(name);
+
                     if (!string.IsNullOrEmpty(name))
                         return name;
                 }
