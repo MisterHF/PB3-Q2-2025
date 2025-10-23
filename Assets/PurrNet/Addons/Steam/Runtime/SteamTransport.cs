@@ -364,6 +364,7 @@ namespace PurrNet.Steam
             try
             {
                 var steamId = new CSteamID((ulong)obj);
+                Debug.Log(steamId);
                 // délègue à la surcharge qui prend un CSteamID
                 return GetRemoteDisplayNameFromId(steamId);
             }
@@ -403,6 +404,7 @@ namespace PurrNet.Steam
             try
             {
                 string friendName = SteamFriends.GetFriendPersonaName(steamId);
+                Debug.Log(friendName);
                 if (!string.IsNullOrEmpty(friendName))
                     display = friendName;
             }
