@@ -25,7 +25,7 @@ namespace PurrNet.Steam
         [SerializeField] private bool _dedicatedServer;
         [SerializeField] private bool _peerToPeer = true;
         [SerializeField] private List<string> Players = new List<string>();
-        public event Action<string, bool> OnPlayerConnected;
+        public event Action<List<string>, bool> OnPlayerConnected;
 
         [Header("Client Settings")] [SerializeField]
         private string _address = "127.0.0.1";
@@ -156,11 +156,11 @@ namespace PurrNet.Steam
             if (_displayName == _localName)
                 return;
 
-            OnPlayerConnected?.Invoke(_displayName, true);
 
             if (!Players.Contains(_displayName))
                 Players.Add(_displayName);
 
+            OnPlayerConnected?.Invoke(Players, true);
             var connection = new Connection(obj);
             _connections.Add(connection);
             onConnected?.Invoke(connection, true);
@@ -251,7 +251,7 @@ namespace PurrNet.Steam
 
                 Debug.Log(_localName);
 
-                OnPlayerConnected?.Invoke(_localName, true);
+                OnPlayerConnected?.Invoke(new List<string>(Players), true);
                 onConnected?.Invoke(new Connection(0), false);
 
                 // demander/récupérer la liste du serveur nativement : ici on rebroadcast localement

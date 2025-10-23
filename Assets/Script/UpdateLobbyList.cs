@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using PurrNet;
 using PurrNet.Steam;
@@ -22,16 +23,20 @@ namespace Script
         public Sprite DefaultAvatar;
 
         private SteamTransport transport;
+
         private void OnEnable()
         {
             transport = NetworkManager.main.transport as SteamTransport;
             transport.OnPlayerConnected += TransportOnOnPlayerConnected;
         }
 
-        private void TransportOnOnPlayerConnected(string _Arg1, bool _Arg2)
+        private void TransportOnOnPlayerConnected(List<string> _List, bool _Arg2)
         {
-            GameObject _Player = Instantiate(PlayerPrefabUI, Viewport.transform);
-            _Player.transform.GetComponentInChildren<TextMeshProUGUI>().text = _Arg1;
+            foreach (var _item in _List)
+            {
+                GameObject _player = Instantiate(PlayerPrefabUI, Viewport.transform);
+                _player.transform.GetComponentInChildren<TextMeshProUGUI>().text = _item;
+            }
         }
 
         private void OnDisable()
