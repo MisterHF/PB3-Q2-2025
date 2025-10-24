@@ -1,6 +1,3 @@
-// csharp
-// Fichier: `Assets/Script/UpdateLobbyList.cs`
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
+using System.Linq;
 
 namespace Script
 {
@@ -27,7 +25,8 @@ namespace Script
         private void OnEnable()
         {
             transport = NetworkManager.main.transport as SteamTransport;
-            transport.OnPlayerConnected += TransportOnOnPlayerConnected;
+            if (transport != null)
+                transport.OnPlayerConnected += TransportOnOnPlayerConnected;
         }
 
         private void TransportOnOnPlayerConnected(List<string> _List, bool _Arg2)
@@ -43,19 +42,34 @@ namespace Script
                     Destroy(child.gameObject);
             }
 
-            // Recréer la liste UI
-            foreach (var _item in _List)
+            if (_List == null || _List.Count == 0)
+                return;
+
+            // Filtrer : trim, pas de chiffres, pas de vides, et unique (insensible à la casse)
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var raw in _List)
             {
+                if (string.IsNullOrWhiteSpace(raw))
+                    continue;
+
+                var name = raw.Trim();
+                if (name.Any(char.IsDigit))
+                    continue;
+
+                if (!seen.Add(name))
+                    continue; // déjà ajouté
+
                 GameObject _player = Instantiate(PlayerPrefabUI, Viewport);
                 var text = _player.GetComponentInChildren<TextMeshProUGUI>();
                 if (text != null)
-                    text.text = _item;
+                    text.text = name;
             }
         }
 
         private void OnDisable()
         {
-            transport.OnPlayerConnected -= TransportOnOnPlayerConnected;
+            if (transport != null)
+                transport.OnPlayerConnected -= TransportOnOnPlayerConnected;
         }
 
         private void MainOnonPlayerJoined(PlayerID _Player, bool _IsReconnect, bool _AsServer)

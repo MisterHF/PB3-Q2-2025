@@ -8,7 +8,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using PurrNet.Transports;
 using UnityEngine;
 #if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
@@ -28,8 +27,6 @@ namespace PurrNet.Steam
         [SerializeField] private SyncList<string> Players = new SyncList<string>();
         private readonly Dictionary<int, string> _connectionNames = new Dictionary<int, string>();
         public event Action<List<string>, bool> OnPlayerConnected;
-        [SerializeField] private readonly List<string> _clientOnlyNames = new List<string>();
-        public IReadOnlyList<string> clientOnlyNames => _clientOnlyNames;
 
         [Header("Client Settings")] [SerializeField]
         private string _address = "127.0.0.1";
@@ -239,56 +236,7 @@ namespace PurrNet.Steam
 
             return null;
         }
-        private void RemovePlayerByName(string name)
-        {
-            var n = NormalizeName(name);
-            if (n == null) return;
-            var toRemove = Players.FirstOrDefault(p => string.Equals(NormalizeName(p), n, StringComparison.OrdinalIgnoreCase));
-            if (toRemove != null)
-                Players.Remove(toRemove);
-        }
-        private bool AddPlayerUnique(string name)
-        {
-            var n = NormalizeName(name);
-            if (n == null) return false;
-            if (PlayersContainsNormalized(n)) return false;
-            Players.Add(n);
-            return true;
-        }
-        private static string NormalizeName(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name)) return null;
-            return name.Trim();
-        }
 
-        private bool PlayersContainsNormalized(string name)
-        {
-            var n = NormalizeName(name);
-            if (n == null) return false;
-            return Players.Any(p => string.Equals(NormalizeName(p), n, StringComparison.OrdinalIgnoreCase));
-        }
-        private static bool IsValidClientName(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name)) return false;
-            var trimmed = name.Trim();
-            // invalide si contient un chiffre
-            return !trimmed.Any(char.IsDigit);
-        }
-        private void UpdateClientOnlyNames()
-        {
-            _clientOnlyNames.Clear();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var p in Players)
-            {
-                var t = NormalizeName(p);
-                if (t == null) continue;
-                if (!IsValidClientName(t)) continue;
-                if (seen.Add(t))
-                    _clientOnlyNames.Add(t);
-            }
-
-            Debug.Log($"[SteamTransport] UpdateClientOnlyNames - count={_clientOnlyNames.Count}");
-        }
         public void Listen(ushort port)
         {
             if (_server != null)
@@ -326,17 +274,16 @@ namespace PurrNet.Steam
         {
             // Log du changement et de la liste complète
             Debug.Log($"[SteamTransport] PlayersOnonChanged - type={_Change.value} - total={Players.Count}");
-            OnPlayerConnected?.Invoke(new List<string>(_clientOnlyNames), true);
+            OnPlayerConnected?.Invoke(new List<string>(Players), true);
             foreach (string _player in Players)
             {
                 Debug.Log($"[SteamTransport] Player in list: {_player}");
             }
-
-            UpdateClientOnlyNames();
         }
 
         private void OnRemoteConnected(int obj)
         {
+            // Ignorer l'entrée de loopback/host souvent signalée comme id 0
             if (obj == 0)
                 return;
 
@@ -345,22 +292,23 @@ namespace PurrNet.Steam
 
             Debug.Log($"[SteamTransport] OnRemoteConnected - id={obj} - pseudoResolved={_displayName}");
 
+            // Ne pas ajouter si c'est en fait le même nom que le host
             if (_displayName == _localName)
             {
                 Debug.Log($"[SteamTransport] OnRemoteConnected - ignored (same as local): {_displayName}");
                 return;
             }
 
-            if (AddPlayerUnique(_displayName))
+            if (!Players.Contains(_displayName))
             {
+                Players.Add(_displayName);
                 Debug.Log($"[SteamTransport] OnRemoteConnected - added to Players: {_displayName}");
-                UpdateClientOnlyNames();
             }
 
             var connection = new Connection(obj);
             _connections.Add(connection);
 
-            OnPlayerConnected?.Invoke(new List<string>(_clientOnlyNames), true);
+            // notifier en interne et log
             onConnected?.Invoke(connection, true);
 
             Debug.Log(
@@ -369,21 +317,21 @@ namespace PurrNet.Steam
 
         private void OnRemoteDisconnected(int obj)
         {
+            // Ignorer l'entrée de loopback/host
             if (obj == 0)
                 return;
 
             string displayName = GetRemoteDisplayNameFromId(obj);
             Debug.Log($"[SteamTransport] OnRemoteDisconnected - id={obj} - pseudoResolved={displayName}");
 
-            RemovePlayerByName(displayName);
+            Players.Remove(displayName);
             Debug.Log($"[SteamTransport] OnRemoteDisconnected - removed from Players: {displayName}");
-            UpdateClientOnlyNames();
 
+            // retirer la connexion correspondante
             _connections.RemoveAll(c => c.connectionId == obj);
 
             onDisconnected?.Invoke(new Connection(obj), DisconnectReason.ClientRequest, true);
 
-            OnPlayerConnected?.Invoke(new List<string>(_clientOnlyNames), true);
         }
 
         private void OnServerData(int conn, ByteData data)
@@ -413,19 +361,20 @@ namespace PurrNet.Steam
                     if (!string.IsNullOrEmpty(name))
                     {
                         _connectionNames[conn] = name;
-                        if (AddPlayerUnique(name))
+                        if (!Players.Contains(name))
                         {
+                            Players.Add(name);
                             Debug.Log($"[SteamTransport] OnServerData - SETNAME added: {name} (conn={conn})");
-                            UpdateClientOnlyNames();
                         }
 
                         BroadcastPlayers();
                     }
 
-                    return;
+                    return; // ne pas passer l'événement générique
                 }
                 else if (message == "REQUEST_PLAYERS")
                 {
+                    // envoyer la liste uniquement au demandeur
                     var target = _connections.Find(c => c.connectionId == conn);
                     if (target != null && target.isValid)
                     {
@@ -436,6 +385,7 @@ namespace PurrNet.Steam
                 }
             }
 
+            // comportement normal si ce n'est pas une commande SETNAME/REQUEST_PLAYERS
             onDataReceived?.Invoke(new Connection(conn), data, true);
         }
 
@@ -446,7 +396,6 @@ namespace PurrNet.Steam
             _server?.Stop();
             Debug.Log("[SteamTransport] StopListening - stopping server and clearing Players");
             Players.Clear();
-            UpdateClientOnlyNames();
             listenerState = ConnectionState.Disconnected;
             _server = null;
         }
@@ -489,25 +438,22 @@ namespace PurrNet.Steam
                     var payload = message.Substring("PLAYERS:".Length);
                     var parts = string.IsNullOrEmpty(payload) ? Array.Empty<string>() : payload.Split('|');
 
-                    // remplacer la liste locale par celle du serveur sans doublons (insensible à la casse)
+                    // remplacer la liste locale par celle du serveur
                     Players.Clear();
-                    var added = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     foreach (var p in parts)
                     {
-                        var n = NormalizeName(p);
-                        if (string.IsNullOrEmpty(n)) continue;
-                        if (added.Add(n))
-                            Players.Add(n);
+                        if (!string.IsNullOrEmpty(p))
+                            Players.Add(p);
                     }
 
-                    UpdateClientOnlyNames();
-
                     Debug.Log($"[SteamTransport] OnClientDataReceived - PLAYERS received ({Players.Count})");
-                    OnPlayerConnected?.Invoke(new List<string>(_clientOnlyNames), false);
-                    return;
+                    // notifier listeners UI côté client (asServer = false)
+                    OnPlayerConnected?.Invoke(new List<string>(Players), false);
+                    return; // message géré
                 }
             }
 
+            // comportement par défaut
             onDataReceived?.Invoke(new Connection(-1), data, false);
         }
 
@@ -516,14 +462,15 @@ namespace PurrNet.Steam
             string _localName = GetLocalDisplayName();
             if (state == ConnectionState.Connected)
             {
-                if (AddPlayerUnique(_localName))
+                if (!Players.Contains(_localName))
                 {
+                    Players.Add(_localName);
                     Debug.Log($"[SteamTransport] OnClientStateChanged - added local player: {_localName}");
-                    UpdateClientOnlyNames();
                 }
 
                 Debug.Log($"[SteamTransport] OnClientStateChanged - Connected as local pseudo={_localName}");
 
+                // envoyer SETNAME au serveur
                 try
                 {
                     string payload = "SETNAME:" + _localName;
@@ -536,15 +483,15 @@ namespace PurrNet.Steam
                     Debug.LogWarning($"[SteamTransport] Send SETNAME failed: {e.Message}");
                 }
 
-                OnPlayerConnected?.Invoke(new List<string>(_clientOnlyNames), false);
+                // côté client : transmettre la liste complète (false)
+                OnPlayerConnected?.Invoke(new List<string>(Players), false);
                 onConnected?.Invoke(new Connection(0), false);
             }
 
             if (state == ConnectionState.Disconnected)
             {
-                RemovePlayerByName(_localName);
+                Players.Remove(_localName);
                 Debug.Log($"[SteamTransport] OnClientStateChanged - Disconnected local pseudo removed: {_localName}");
-                UpdateClientOnlyNames();
                 onDisconnected?.Invoke(new Connection(0), DisconnectReason.ClientRequest, false);
             }
 
@@ -566,8 +513,7 @@ namespace PurrNet.Steam
             _client = null;
 
             string _localName = GetLocalDisplayName();
-            RemovePlayerByName(_localName);
-            UpdateClientOnlyNames();
+            Players.Remove(_localName);
             Debug.Log($"[SteamTransport] Disconnect - local player removed: {_localName}");
         }
 
