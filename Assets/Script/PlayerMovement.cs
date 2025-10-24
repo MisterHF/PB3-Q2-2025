@@ -1,19 +1,20 @@
-﻿using UnityEngine;
+﻿using PurrNet;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Script
 {
     [RequireComponent(typeof(CharacterController))]
-    public class PlayerMovement : MonoBehaviour
+    public class PlayerMovement : NetworkBehaviour
     {
         [Header("Mouvement")]
-        public float moveSpeed = 5f;
-        public float jumpHeight = 2f;
-        public float gravity = -9.81f;
+        [SerializeField] private float moveSpeed = 5f;
+        [SerializeField] private float jumpHeight = 2f;
+        [SerializeField] private float gravity = -9.81f;
 
         [Header("Caméra / Souris")]
-        public float lookSpeed = 100f;
-        public Transform cameraTransform;
+        [SerializeField] private float lookSpeed = 100f;
+        [SerializeField] private Transform cameraTransform;
 
         private CharacterController controller;
         private InputSystem_Actions actions;
@@ -78,7 +79,7 @@ namespace Script
             velocity.y += gravity * Time.deltaTime;
             controller.Move(velocity * Time.deltaTime);
         }
-
+        
         private void HandleCamera()
         {
             float mouseX = lookDelta.x * lookSpeed * Time.deltaTime;
