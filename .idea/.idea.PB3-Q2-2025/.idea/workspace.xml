@@ -5,18 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="659ba532-42dd-4a0a-89eb-7c2d00b4eb78" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/LobbyData.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/LobbyData.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Script/LobbyManager/Data.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/PurrLobby/LobbyScenes/LobbySample.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrLobby/LobbyScenes/LobbySample.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/PurrLobby/Runtime/ViewManagement/ViewManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrLobby/Runtime/ViewManagement/ViewManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/PurrLobby/Runtime/ViewManagement/Views/LobbyView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrLobby/Runtime/ViewManagement/Views/LobbyView.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Editor/SteamTransportInspector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Editor/SteamTransportInspector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/NetworkPrefabs 1.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/NetworkPrefabs 1.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/NetworkPrefabs.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/NetworkPrefabs.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Feat-Character.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Feat-Character.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Feat-Multiplayer.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Feat-Multiplayer.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Script/ConnectionManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/ConnectionManager.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/TextMesh Pro/Resources/Fonts &amp; Materials/LiberationSans SDF - Fallback.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/TextMesh Pro/Resources/Fonts &amp; Materials/LiberationSans SDF - Fallback.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/ProjectSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,7 +62,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Feat-PlayerList",
+    "git-widget-placeholder": "Dev",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",

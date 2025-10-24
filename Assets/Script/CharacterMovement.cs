@@ -1,3 +1,4 @@
+// csharp
 using PurrNet;
 using UnityEngine;
 
@@ -9,12 +10,15 @@ public class CharacterMovement : NetworkBehaviour
     [SerializeField] private float jumpHeight = 2f;
     [SerializeField] private float gravity = -9.81f;
 
-    [Header("Cam�ra / Souris")]
+    [Header("Camera / Souris")]
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private float lookSpeed = 100f;
 
     private CharacterController controller;
     private InputSystem_Actions actions;
+
+    private Camera playerCamera;
+    private AudioListener playerAudioListener;
 
     private Vector2 moveInput;
     private Vector2 lookDelta;
@@ -35,25 +39,57 @@ public class CharacterMovement : NetworkBehaviour
 
         actions.Player.Jump.started += ctx => _willJump = true;
 
-        actions.Player.Enable();
+        // Activation des actions uniquement pour le joueur local dans Start()
     }
 
     private void OnDisable()
     {
-        actions.Player.Disable();
+        if (actions != null)
+        {
+            // safe to call Disable même si pas activé
+            try { actions.Player.Disable(); } catch { }
+        }
     }
 
     private void Start()
     {
         controller = GetComponent<CharacterController>();
+
+        // Si pas assigné, chercher une camera enfant locale puis fallback sur Camera.main
         if (cameraTransform == null)
-            cameraTransform = Camera.main.transform;
+        {
+            var camChild = GetComponentInChildren<Camera>();
+            if (camChild != null)
+                cameraTransform = camChild.transform;
+            else if (Camera.main != null)
+                cameraTransform = Camera.main.transform;
+        }
+
+        // Récupère Camera et AudioListener si présents
+        if (cameraTransform != null)
+        {
+            playerCamera = cameraTransform.GetComponent<Camera>();
+            playerAudioListener = cameraTransform.GetComponent<AudioListener>();
+            if (playerCamera != null)
+                playerCamera.enabled = isOwner; // active seulement pour le propriétaire local
+            if (playerAudioListener != null)
+                playerAudioListener.enabled = isOwner;
+        }
 
         if (isOwner)
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             networkManager.onTick += OnTick;
+
+            // Activer les actions d'input uniquement pour le joueur local
+            try { actions.Player.Enable(); } catch { }
+        }
+        else
+        {
+            // s'assurer que le rendu local du joueur distant n'affiche pas sa caméra
+            if (playerCamera != null) playerCamera.enabled = false;
+            if (playerAudioListener != null) playerAudioListener.enabled = false;
         }
     }
 
