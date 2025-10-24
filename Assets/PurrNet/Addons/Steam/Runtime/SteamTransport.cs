@@ -448,7 +448,6 @@ namespace PurrNet.Steam
 
                     Debug.Log($"[SteamTransport] OnClientDataReceived - PLAYERS received ({Players.Count})");
                     // notifier listeners UI côté client (asServer = false)
-                    OnPlayerConnected?.Invoke(new List<string>(Players), false);
                     return; // message géré
                 }
             }
@@ -462,11 +461,11 @@ namespace PurrNet.Steam
             string _localName = GetLocalDisplayName();
             if (state == ConnectionState.Connected)
             {
-                if (!Players.Contains(_localName))
-                {
-                    Players.Add(_localName);
-                    Debug.Log($"[SteamTransport] OnClientStateChanged - added local player: {_localName}");
-                }
+                // if (!Players.Contains(_localName))
+                // {
+                //     Players.Add(_localName);
+                //     Debug.Log($"[SteamTransport] OnClientStateChanged - added local player: {_localName}");
+                // }
 
                 Debug.Log($"[SteamTransport] OnClientStateChanged - Connected as local pseudo={_localName}");
 
@@ -484,7 +483,6 @@ namespace PurrNet.Steam
                 }
 
                 // côté client : transmettre la liste complète (false)
-                OnPlayerConnected?.Invoke(new List<string>(Players), false);
                 onConnected?.Invoke(new Connection(0), false);
             }
 
