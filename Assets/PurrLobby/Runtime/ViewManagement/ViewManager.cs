@@ -90,7 +90,7 @@ namespace PurrLobby
         
         public void OnRoomCreateClicked()
         {
-            ShowView<CreatingRoomView>(false);
+            ShowView<LobbyView>();
         }
         
         public void OnJoiningRoom()
