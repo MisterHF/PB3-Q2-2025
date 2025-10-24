@@ -1,10 +1,16 @@
-﻿using PurrNet;
+﻿using System.Collections;
+using PurrLobby;
+using PurrNet;
 using PurrNet.Steam;
+using PurrNet.Transports;
+using Script.LobbyManager;
+using Script.UI;
 using Steamworks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using PlayerInfo = PurrNet.Steam.PlayerInfo;
 
 namespace Script
 {
@@ -13,13 +19,13 @@ namespace Script
         [SerializeField] private Button hostButton;
 
         public Button HostButton => hostButton;
-
         public Button ClientButton => clientButton;
 
         [SerializeField] private Button clientButton;
-        [SerializeField] private TMP_Text hostTextField;
+        [SerializeField] private Button returnButton;
+        [SerializeField] private CopyButton hostTextField;
         [SerializeField] private TMP_InputField clientInputField;
-        
+        private SteamTransport transport;
         public static readonly UnityEvent UpdateLobbyEvent = new UnityEvent();
 
         private bool steamInitialized;
@@ -28,11 +34,12 @@ namespace Script
         {
             InstanceHandler.RegisterInstance(this);
 
-            if(InstanceHandler.GetInstance<ConnectionManager>() != this)
+            if (InstanceHandler.GetInstance<ConnectionManager>() != this)
             {
                 Destroy(gameObject);
                 return;
             }
+
             DontDestroyOnLoad(this);
 
             InitializeSteam();
@@ -42,12 +49,44 @@ namespace Script
         {
             hostButton?.onClick.AddListener(HandleHostClicked);
             clientButton?.onClick.AddListener(HandleClientClicked);
+            returnButton?.onClick.AddListener(StopClient);
+            transport = NetworkManager.main.transport as SteamTransport;
+            if (transport == null) return;
+            transport.onConnected += OnConnectedLocal;
+            transport.OnLobbyUpdated += OnLobbyUpdated;
         }
 
         private void OnDisable()
         {
             hostButton?.onClick.RemoveListener(HandleHostClicked);
             clientButton?.onClick.RemoveListener(HandleClientClicked);
+            if (transport == null) return;
+            transport.onConnected -= OnConnectedLocal;
+            transport.OnLobbyUpdated -= OnLobbyUpdated;
+        }
+
+        private void OnConnectedLocal(Connection conn, bool asServer)
+        {
+            if (asServer) return;
+            SendLocalPlayerInfo();
+        }
+
+        private void SendLocalPlayerInfo()
+        {
+            if (transport == null) return;
+            var _localName = SteamFriends.GetPersonaName();
+            var _avatar = SteamFriends.GetMediumFriendAvatar(SteamUser.GetSteamID());
+            var _info = new PlayerInfo(_localName, _avatar.ToString());
+            string _payload = "PLAYERINFO:" + JsonUtility.ToJson(_info);
+            byte[] _bytes = System.Text.Encoding.UTF8.GetBytes(_payload);
+            transport.SendToServer(new ByteData(_bytes), Channel.ReliableOrdered);
+        }
+
+        private void OnLobbyUpdated(LobbyData lobby, bool asServer)
+        {
+            // mettre à jour UI avec lobby.players et lobby.hostName
+            Debug.Log($"[ConnectionManager] Lobby updated: host={lobby.HostName} players={lobby.Players.Count}");
+            // UI update logic here...
         }
 
         protected override void OnDestroy()
@@ -99,6 +138,13 @@ namespace Script
 
         public void StartHost()
         {
+            if (transport == null)
+            {
+                transport = NetworkManager.main.transport as SteamTransport;
+                transport.onConnected += OnConnectedLocal;
+                transport.OnLobbyUpdated += OnLobbyUpdated;
+            }
+
             var _steamTransport = NetworkManager.main.transport as SteamTransport;
             if (_steamTransport == null)
             {
@@ -124,10 +170,12 @@ namespace Script
             Debug.Log($"🟢 Serveur Steam lancé pour SteamID64: {_steam64}");
             RaiseUpdateLobby();
         }
+
         private void RaiseUpdateLobby()
         {
             UpdateLobbyEvent?.Invoke();
         }
+
         // Client
         public void StartClient(string _SteamIdString)
         {
@@ -160,6 +208,14 @@ namespace Script
             RaiseUpdateLobby();
         }
 
+        public void StopClient()
+        {
+            if (!NetworkManager.main.isHost)
+                NetworkManager.main.StopClient();
+            else
+                NetworkManager.main.StopServer();
+        }
+
         // UI handlers
         private void HandleHostClicked()
         {
@@ -173,13 +229,13 @@ namespace Script
 
             if (NetworkManager.main.isOffline)
             {
-                hostTextField.text = "Serveur Offline ❌";
+                hostTextField.SetText("Serveur Offline ❌");
                 hostButton.image.color = Color.red;
                 return;
             }
 
             CSteamID _localId = SteamUser.GetSteamID();
-            hostTextField.text = _localId.m_SteamID.ToString();
+            hostTextField.SetText(_localId.m_SteamID.ToString());
             hostButton.image.color = Color.green;
 
             hostButton.onClick.RemoveListener(HandleHostClicked);
@@ -191,9 +247,12 @@ namespace Script
             if (string.IsNullOrEmpty(clientInputField.text))
             {
                 clientInputField.text = "Entrez l'ID Steam de l'hôte";
+                clientButton.enabled = false;
                 clientButton.image.color = Color.red;
                 return;
             }
+
+            clientButton.enabled = true;
 
             StartClient(clientInputField.text);
 
@@ -202,6 +261,22 @@ namespace Script
 
             clientButton.onClick.RemoveListener(HandleClientClicked);
             hostButton.onClick.RemoveListener(HandleHostClicked);
+        }
+
+        public void LobbyPanelOpen(GameObject _LobbyPanel)
+        {
+            StartCoroutine(LobbyPanelCoroutine(_LobbyPanel));
+        }
+
+        private IEnumerator LobbyPanelCoroutine(GameObject _LobbyPanel)
+        {
+            yield return new WaitUntil(() => NetworkManager.main.isOffline);
+            _LobbyPanel.SetActive(true);
+        }
+
+        public void Play()
+        {
+            networkManager.sceneModule.LoadSceneAsync("Feat-Character");
         }
     }
 }
