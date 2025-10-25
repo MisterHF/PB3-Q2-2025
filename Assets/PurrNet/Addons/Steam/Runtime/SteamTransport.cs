@@ -648,7 +648,6 @@ namespace PurrNet.Steam
             if (string.IsNullOrWhiteSpace(name)) return null;
             var t = name.Trim();
             // interdiction des pseudos contenant des chiffres (si demandé)
-            if (t.Any(char.IsDigit)) return null;
             return t;
         }
 

@@ -1,168 +1,111 @@
-// csharp
+using System;
 using PurrNet;
+using Unity.Cinemachine;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class CharacterMovement : NetworkBehaviour
+public class PlayerController : NetworkBehaviour
 {
-    [Header("Mouvement")]
+    [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float jumpHeight = 2f;
+    [SerializeField] private float sprintSpeed = 8f;
+    [SerializeField] private float jumpForce = 1f;
     [SerializeField] private float gravity = -9.81f;
+    [SerializeField] private float groundCheckDistance = 0.2f;
 
-    [Header("Camera / Souris")]
-    [SerializeField] private Transform cameraTransform;
-    [SerializeField] private float lookSpeed = 100f;
+    [Header("Look Settings")]
+    [SerializeField] private float lookSensitivity = 2f;
+    [SerializeField] private float maxLookAngle = 80f;
 
-    private CharacterController controller;
-    private InputSystem_Actions actions;
+    [Header("References")]
+    [SerializeField] private CinemachineCamera playerCamera;
+    
+    private CharacterController characterController;
+    private Vector3 velocity;
+    private float verticalRotation = 0f;
 
-    private Camera playerCamera;
-    private AudioListener playerAudioListener;
 
-    private Vector2 moveInput;
-    private Vector2 lookDelta;
-    private bool _willJump;
-
-    private float xRotation = 0f;
-    private float verticalVelocity = 0f;
-
-    private void OnEnable()
+    protected override void OnSpawned()
     {
-        actions = new InputSystem_Actions();
-
-        actions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        actions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
-
-        actions.Player.Look.performed += ctx => lookDelta = ctx.ReadValue<Vector2>();
-        actions.Player.Look.canceled += ctx => lookDelta = Vector2.zero;
-
-        actions.Player.Jump.started += ctx => _willJump = true;
-
-        // Activation des actions uniquement pour le joueur local dans Start()
+        base.OnSpawned();
+        enabled = isOwner;
+        playerCamera.gameObject.SetActive(isOwner);
     }
 
     private void OnDisable()
     {
-        if (actions != null)
-        {
-            // safe to call Disable même si pas activé
-            try { actions.Player.Disable(); } catch { }
-        }
+        if(!isOwner) return;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     private void Start()
     {
-        controller = GetComponent<CharacterController>();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        characterController = GetComponent<CharacterController>();
 
-        // Si pas assigné, chercher une camera enfant locale puis fallback sur Camera.main
-        if (cameraTransform == null)
+        if (playerCamera == null)
         {
-            var camChild = GetComponentInChildren<Camera>();
-            if (camChild != null)
-                cameraTransform = camChild.transform;
-            else if (Camera.main != null)
-                cameraTransform = Camera.main.transform;
+            enabled = false;
+            return;
         }
-
-        // Récupère Camera et AudioListener si présents
-        if (cameraTransform != null)
-        {
-            playerCamera = cameraTransform.GetComponent<Camera>();
-            playerAudioListener = cameraTransform.GetComponent<AudioListener>();
-            if (playerCamera != null)
-                playerCamera.enabled = isOwner; // active seulement pour le propriétaire local
-            if (playerAudioListener != null)
-                playerAudioListener.enabled = isOwner;
-        }
-
-        if (isOwner)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            networkManager.onTick += OnTick;
-
-            // Activer les actions d'input uniquement pour le joueur local
-            try { actions.Player.Enable(); } catch { }
-        }
-        else
-        {
-            // s'assurer que le rendu local du joueur distant n'affiche pas sa caméra
-            if (playerCamera != null) playerCamera.enabled = false;
-            if (playerAudioListener != null) playerAudioListener.enabled = false;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (networkManager != null)
-            networkManager.onTick -= OnTick;
     }
 
     private void Update()
     {
-        if (!isOwner) return;
-
-        HandleCamera();
+        HandleMovement();
+        HandleRotation();
     }
 
-    private void HandleCamera()
+    private void HandleMovement()
     {
-        float mouseX = lookDelta.x * lookSpeed * Time.deltaTime;
-        float mouseY = lookDelta.y * lookSpeed * Time.deltaTime;
+        bool isGrounded = IsGrounded();
+        if (isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
 
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
 
-        if (cameraTransform != null)
-            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        Vector3 moveDirection = transform.right * horizontal + transform.forward * vertical;
+        moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
+
+        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : moveSpeed;
+        characterController.Move(moveDirection * currentSpeed * Time.deltaTime);
+
+        if (Input.GetButtonDown("Jump") && isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+        }
+
+        velocity.y += gravity * Time.deltaTime;
+        characterController.Move(velocity * Time.deltaTime);
+    }
+
+    private void HandleRotation()
+    {
+        float mouseX = Input.GetAxis("Mouse X") * lookSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * lookSensitivity;
+
+        verticalRotation -= mouseY;
+        verticalRotation = Mathf.Clamp(verticalRotation, -maxLookAngle, maxLookAngle);
+        playerCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
 
         transform.Rotate(Vector3.up * mouseX);
     }
 
-    private void OnTick(bool asServer)
+    private bool IsGrounded()
     {
-        if (!isOwner) return;
-
-        InputData inputData = new InputData
-        {
-            move = moveInput,
-            jump = _willJump
-        };
-        _willJump = false;
-
-        MoveServerRpc(inputData);
+        return Physics.Raycast(transform.position + Vector3.up * 0.03f, Vector3.down, groundCheckDistance);
     }
 
-    [ServerRpc]
-    private void MoveServerRpc(InputData inputData)
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
     {
-        if (controller == null) controller = GetComponent<CharacterController>();
-
-        Vector3 move = transform.right * inputData.move.x + transform.forward * inputData.move.y;
-        Vector3 velocity = move * moveSpeed;
-
-        if (controller.isGrounded)
-        {
-            verticalVelocity = -2f;
-            if (inputData.jump)
-            {
-                verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            }
-        }
-        else
-        {
-            verticalVelocity += gravity * Time.fixedDeltaTime;
-        }
-
-        velocity.y = verticalVelocity;
-
-        controller.Move(velocity * Time.fixedDeltaTime);
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(transform.position + Vector3.up * 0.03f, Vector3.down * groundCheckDistance);
     }
-
-    private struct InputData
-    {
-        public Vector2 move;
-        public bool jump;
-    }
+#endif
 }

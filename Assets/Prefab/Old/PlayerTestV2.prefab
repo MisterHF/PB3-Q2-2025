@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1202624398808503032}
   - component: {fileID: 5534107803942566984}
   - component: {fileID: 2212988351669905682}
+  - component: {fileID: 3256566322957578173}
   m_Layer: 0
   m_Name: PlayerTestV2
   m_TagString: Untagged
@@ -70,7 +71,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 102634745723369461}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 817fe5016bd0a2a49a95b6eb338bb132, type: 3}
   m_Name: 
@@ -101,7 +102,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 102634745723369461}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4c71802837223245ba1395672796820, type: 3}
   m_Name: 
@@ -115,10 +116,39 @@ MonoBehaviour:
   _directChildren: []
   _networkRules: {fileID: 0}
   _visitiblityRules: {fileID: 0}
-  rb: {fileID: 1202624398808503032}
-  moveForce: 10
+  moveSpeed: 5
+  sprintSpeed: 8
   jumpForce: 10
-  _isGrounded: 0
+  gravity: -9.81
+  groundCheckDistance: 0.2
+  lookSensitivity: 2
+  maxLookAngle: 80
+  playerCamera: {fileID: 0}
+--- !u!143 &3256566322957578173
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102634745723369461}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4144386889895724622
 GameObject:
   m_ObjectHideFlags: 0
@@ -185,7 +215,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff08899b345954d4bba2da92de1f1174, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  character: {fileID: 2212988351669905682}
 --- !u!1 &6808432773585154223
 GameObject:
   m_ObjectHideFlags: 0
