@@ -37,26 +37,15 @@ namespace Script
         {
             InstanceHandler.RegisterInstance(this);
 
-            if (FindObjectsOfType<ConnectionManager>().Length > 1)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            DontDestroyOnLoad(this);
-
             InitializeSteam();
         }
+
 
         private void OnEnable()
         {
             hostButton?.onClick.AddListener(HandleHostClicked);
             clientButton?.onClick.AddListener(HandleClientClicked);
             returnButton?.onClick.AddListener(StopClient);
-            transport = NetworkManager.main.transport as SteamTransport;
-            if (transport == null) return;
-            transport.onConnected += OnConnectedLocal;
-            transport.OnLobbyUpdated += OnLobbyUpdated;
         }
 
         private void OnDisable()
@@ -82,6 +71,7 @@ namespace Script
             var _info = new PlayerInfo(_localName, _avatar);
             string _payload = "PLAYERINFO:" + JsonUtility.ToJson(_info);
             byte[] _bytes = System.Text.Encoding.UTF8.GetBytes(_payload);
+            Debug.Log("SendToServer !");
             transport.SendToServer(new ByteData(_bytes), Channel.ReliableOrdered);
         }
 
@@ -95,8 +85,9 @@ namespace Script
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            InstanceHandler.UnregisterInstance<ConnectionManager>();
 
+            // désenregistrer et libérer l'instance si c'était la bonne
+            InstanceHandler.UnregisterInstance<ConnectionManager>();
             if (steamInitialized)
             {
 #if !UNITY_EDITOR
@@ -142,6 +133,7 @@ namespace Script
                 steamInitialized = false;
             }
         }
+
         private Texture2D LoadLocalMediumAvatar(CSteamID _LocalId)
         {
             if (playerAvatar == null)
@@ -179,6 +171,7 @@ namespace Script
             // Sprite sprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
             return _tex;
         }
+
         private void LoadLocalLargeAvatar(CSteamID _LocalId)
         {
             if (playerAvatar == null)
@@ -219,15 +212,15 @@ namespace Script
 
         public void StartHost()
         {
-            if (transport == null)
+            transport = NetworkManager.main.transport as SteamTransport;
+            if (transport != null)
             {
-                transport = NetworkManager.main.transport as SteamTransport;
                 transport.onConnected += OnConnectedLocal;
                 transport.OnLobbyUpdated += OnLobbyUpdated;
             }
 
-            var _steamTransport = NetworkManager.main.transport as SteamTransport;
-            if (_steamTransport == null)
+
+            if (transport == null)
             {
                 Debug.LogError("SteamTransport manquant sur le NetworkManager", this);
                 return;
@@ -242,9 +235,9 @@ namespace Script
             CSteamID _localId = SteamUser.GetSteamID();
             ulong _steam64 = _localId.m_SteamID;
 
-            _steamTransport.peerToPeer = true;
-            _steamTransport.dedicatedServer = false;
-            _steamTransport.address = _steam64.ToString();
+            transport.peerToPeer = true;
+            transport.dedicatedServer = false;
+            transport.address = _steam64.ToString();
 
             NetworkManager.main.StartHost();
 
@@ -260,8 +253,15 @@ namespace Script
         // Client
         public void StartClient(string _SteamIdString)
         {
-            var _steamTransport = NetworkManager.main.transport as SteamTransport;
-            if (_steamTransport == null)
+            transport = NetworkManager.main.transport as SteamTransport;
+            if (transport != null)
+            {
+                Debug.Log("ListeningEvent");
+                transport.onConnected += OnConnectedLocal;
+                transport.OnLobbyUpdated += OnLobbyUpdated;
+            }
+
+            if (transport == null)
             {
                 Debug.LogError("SteamTransport manquant sur le NetworkManager", this);
                 return;
@@ -279,9 +279,9 @@ namespace Script
                 return;
             }
 
-            _steamTransport.peerToPeer = true;
-            _steamTransport.dedicatedServer = false;
-            _steamTransport.address = _hostId.ToString();
+            transport.peerToPeer = true;
+            transport.dedicatedServer = false;
+            transport.address = _hostId.ToString();
 
             NetworkManager.main.StartClient();
 
@@ -298,7 +298,7 @@ namespace Script
         }
 
         // UI handlers
-        private void HandleHostClicked()
+        public void HandleHostClicked()
         {
             if (hostButton == null || hostTextField == null)
             {
@@ -323,7 +323,7 @@ namespace Script
             clientButton.onClick.RemoveListener(HandleClientClicked);
         }
 
-        private void HandleClientClicked()
+        public void HandleClientClicked()
         {
             if (string.IsNullOrEmpty(clientInputField.text))
             {

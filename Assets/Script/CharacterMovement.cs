@@ -1,111 +1,163 @@
-using System;
 using PurrNet;
+using Script.Object;
+using Script.Player;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
-public class PlayerController : NetworkBehaviour
+namespace Script
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float sprintSpeed = 8f;
-    [SerializeField] private float jumpForce = 1f;
-    [SerializeField] private float gravity = -9.81f;
-    [SerializeField] private float groundCheckDistance = 0.2f;
+    [RequireComponent(typeof(CharacterController))]
+    public class CharacterMovement : NetworkBehaviour
+    {
+        [Header("Movement Settings")] [SerializeField]
+        private float moveSpeed = 5f;
 
-    [Header("Look Settings")]
-    [SerializeField] private float lookSensitivity = 2f;
-    [SerializeField] private float maxLookAngle = 80f;
+        [SerializeField] private float sprintSpeed = 8f;
+        [SerializeField] private float jumpForce = 1f;
+        [SerializeField] private float gravity = -9.81f;
+        [SerializeField] private float groundCheckDistance = 0.2f;
 
-    [Header("References")]
-    [SerializeField] private CinemachineCamera playerCamera;
+        [Header("Look Settings")] [SerializeField]
+        private float lookSensitivity = 15f;
+
+        [SerializeField] private float maxLookAngle = 80f;
+
+        [Header("References")] [SerializeField]
+        private CinemachineCamera playerCamera;
+        [SerializeField]
+        private GameObject holder;
+
+        public GameObject Holder => holder;
+
+        public CinemachineCamera PlayerCamera => playerCamera;
+
+        private CharacterController characterController;
+        private Vector3 velocity;
+        private float verticalRotation = 0f;
+        private Vector2 input;
+        private Vector2 look;
+        private bool jump;
+
+        private InputSystem_Actions actions;
+
+        private Inventory inventory;
+
+        protected override void OnSpawned()
+        {
+            base.OnSpawned();
+            enabled = isOwner;
+            playerCamera.gameObject.SetActive(isOwner);
+            inventory = GetComponent<Inventory>();
+            SetActions();
+        }
     
-    private CharacterController characterController;
-    private Vector3 velocity;
-    private float verticalRotation = 0f;
-
-
-    protected override void OnSpawned()
-    {
-        base.OnSpawned();
-        enabled = isOwner;
-        playerCamera.gameObject.SetActive(isOwner);
-    }
-
-    private void OnDisable()
-    {
-        if(!isOwner) return;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
-
-    private void Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        characterController = GetComponent<CharacterController>();
-
-        if (playerCamera == null)
+        private void SetActions()
         {
-            enabled = false;
-            return;
-        }
-    }
-
-    private void Update()
-    {
-        HandleMovement();
-        HandleRotation();
-    }
-
-    private void HandleMovement()
-    {
-        bool isGrounded = IsGrounded();
-        if (isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f;
+            actions = new InputSystem_Actions();
+            actions.Enable();
+            actions.Player.Move.performed += _Ctx => input = _Ctx.ReadValue<Vector2>();
+            actions.Player.Move.canceled += _Ctx => input = Vector2.zero;
+            actions.Player.Jump.started += _Ctx => jump = true;
+            actions.Player.Jump.canceled += _Ctx => jump = false;
+            actions.Player.Look.performed += _Ctx => look = _Ctx.ReadValue<Vector2>();
+            actions.Player.Look.canceled += _Ctx => look = Vector2.zero;
+            actions.Player.Interact.started += Interact;
         }
 
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-
-        Vector3 moveDirection = transform.right * horizontal + transform.forward * vertical;
-        moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
-
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : moveSpeed;
-        characterController.Move(moveDirection * currentSpeed * Time.deltaTime);
-
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        private void Interact(InputAction.CallbackContext _Obj)
         {
-            velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+            if(!isOwner && !isServer) return;
+            var _ray = Physics.RaycastAll(playerCamera.transform.position + Vector3.up * 0.03f, playerCamera.transform.forward, 20f);
+            if (_ray == null || _ray.Length <= 0) return;
+            foreach (var _object in _ray)
+            {
+                if (_object.transform.TryGetComponent(out Objects _obj))
+                {
+                    inventory.AddItem(_obj.GetObjects(this));
+                }
+            }
         }
 
-        velocity.y += gravity * Time.deltaTime;
-        characterController.Move(velocity * Time.deltaTime);
-    }
+        private void OnDisable()
+        {
+            if (!isOwner) return;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            actions.Disable();
+        }
 
-    private void HandleRotation()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * lookSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * lookSensitivity;
+        private void Start()
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            characterController = GetComponent<CharacterController>();
 
-        verticalRotation -= mouseY;
-        verticalRotation = Mathf.Clamp(verticalRotation, -maxLookAngle, maxLookAngle);
-        playerCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+            if (playerCamera == null)
+            {
+                enabled = false;
+                return;
+            }
+        }
 
-        transform.Rotate(Vector3.up * mouseX);
-    }
+        private void Update()
+        {
+            HandleMovement();
+            HandleRotation();
+            HandleJump();
+        }
 
-    private bool IsGrounded()
-    {
-        return Physics.Raycast(transform.position + Vector3.up * 0.03f, Vector3.down, groundCheckDistance);
-    }
+        private void HandleMovement()
+        {
+            bool _isGrounded = IsGrounded();
+            if (_isGrounded && velocity.y < 0)
+            {
+                velocity.y = -2f;
+            }
+
+            Vector3 _moveDirection = transform.right * input.x + transform.forward * input.y;
+            _moveDirection = Vector3.ClampMagnitude(_moveDirection, 1f);
+
+            float _currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : moveSpeed;
+            characterController.Move(_moveDirection * _currentSpeed * Time.deltaTime);
+        }
+
+        private void HandleJump()
+        {
+            if (jump && IsGrounded())
+            {
+                velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+            }
+
+            velocity.y += gravity * Time.deltaTime;
+            characterController.Move(velocity * Time.deltaTime);
+        }
+
+        private void HandleRotation()
+        {
+            float _mouseX = look.x / lookSensitivity;
+            float _mouseY = look.y / lookSensitivity;
+
+            verticalRotation -= _mouseY;
+            verticalRotation = Mathf.Clamp(verticalRotation, -maxLookAngle, maxLookAngle);
+            playerCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+
+            transform.Rotate(Vector3.up * _mouseX);
+        }
+
+        private bool IsGrounded()
+        {
+            return Physics.Raycast(transform.position + Vector3.up * 0.03f, Vector3.down, groundCheckDistance);
+        }
 
 #if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position + Vector3.up * 0.03f, Vector3.down * groundCheckDistance);
-    }
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(transform.position + Vector3.up * 0.03f, Vector3.down * groundCheckDistance);
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(playerCamera.transform.position + Vector3.up * 0.03f, playerCamera.transform.forward * 20f);
+        }
 #endif
+    }
 }

@@ -2825,8 +2825,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1820028291}
-  - component: {fileID: 1820028290}
   - component: {fileID: 1820028292}
+  - component: {fileID: 1820028290}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -2890,6 +2890,10 @@ MonoBehaviour:
   _dedicatedServer: 0
   _peerToPeer: 1
   _address: 127.0.0.1
+  enableDebugLogs: 1
+  lobby:
+    HostName: 
+    Players: []
 --- !u!1 &1831894706
 GameObject:
   m_ObjectHideFlags: 0
@@ -4211,8 +4215,8 @@ MonoBehaviour:
   _parent: {fileID: 0}
   _invertedPathToNearestParent: 
   _directChildren: []
-  _networkRules: {fileID: 11400000, guid: d8799083b96579a42b8b2d03e4ceae98, type: 2}
-  _visitiblityRules: {fileID: 11400000, guid: 8f014a5bd8dc68646a2a3c0b18c5bbd8, type: 2}
+  _networkRules: {fileID: 0}
+  _visitiblityRules: {fileID: 0}
   hostButton: {fileID: 1877020358}
   clientButton: {fileID: 844854199}
   playerAvatar: {fileID: 1251441397}

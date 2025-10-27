@@ -6,9 +6,20 @@
   <component name="ChangeListManager">
     <list default="true" id="659ba532-42dd-4a0a-89eb-7c2d00b4eb78" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/InputSystem/InputSystem_Actions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/InputSystem/InputSystem_Actions.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/InputSystem/InputSystem_Actions.inputactions" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/InputSystem/InputSystem_Actions.inputactions" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/NetworkAssets.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/NetworkAssets.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefab/PlayerTestV3.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefab/PlayerTestV3.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefab/UIPrefab/PrefabPlayerID.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefab/UIPrefab/PrefabPlayerID.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Editor/SteamTransportInspector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Editor/SteamTransportInspector.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Feat-Character.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Feat-Character.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Feat-Multiplayer.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Feat-Multiplayer.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Script/CharacterMovement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/CharacterMovement.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Script/ConnectionManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/ConnectionManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Settings/DefaultVolumeProfile.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Settings/DefaultVolumeProfile.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,11 +34,12 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/5a41d6b7189842eca409fd0b1c3e3dcf17bf78/48/9664e05e/Action`2.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/5a41d6b7189842eca409fd0b1c3e3dcf17bf78/c5/73247026/String.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d35f3fd492a14898b9e7cb0372b7ba3d1e0200/61/64193822/GameObject.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d35f3fd492a14898b9e7cb0372b7ba3d1e0200/69/5f2ddc23/MonoBehaviour.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ee16c2cb688d4766af955c0ec92acd90573638/66/ee15281f/List`1.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/f2f42bdef6e94565b9258994d91a08356c200/1e/b6bc5861/LobbyCreated_t.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Editor/SteamTransportInspector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Editor/SteamTransportInspector.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/PlayerInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamClient.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" root0="FORCE_HIGHLIGHTING" />
@@ -36,10 +48,14 @@
     <setting file="file://$PROJECT_DIR$/Assets/Script/LobbyManager/Editor/LobbyManagerEditor.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/LobbyManager/LobbyManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/LobbyUserCache.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Script/Object/Objects.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Script/Player/Inventory.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/SteamAvatarFetcher.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/SteamAvatarSteamworks.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/UI/CopyButton.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Script/UI/DisplayName.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Script/UpdateLobbyList.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.rlabrecque.steamworks.net@4f4794de2ce8/Runtime/CallbackDispatcher.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.rlabrecque.steamworks.net@4f4794de2ce8/Runtime/autogen/isteamuser.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.rlabrecque.steamworks.net@4f4794de2ce8/Runtime/types/SteamClientPublic/CSteamID.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
@@ -55,21 +71,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Attach to Unity Editor.Attach to Unity Editor.executor&quot;: &quot;Debug&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Dev&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Attach to Unity Editor.Attach to Unity Editor.executor": "Debug",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "Feat-Collectible",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Attach to Unity Editor.Attach to Unity Editor">
     <configuration name="Standalone Player" type="RunUnityExe" factoryName="Unity Executable">
       <option name="EXE_PATH" value="$PROJECT_DIR$/../Build\Q2-Lethal-Company.exe" />
@@ -118,13 +134,15 @@
       <option name="useMixedMode" value="false" />
       <method v="2" />
     </configuration>
-    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" ignored-value-for-modified-check="44564">
       <option name="allowRunningInParallel" value="false" />
       <option name="listenPortForConnections" value="false" />
-      <option name="pid" />
+      <option name="pid" value="44564" />
       <option name="projectPathOnTarget" />
       <option name="runtimes">
-        <list />
+        <list>
+          <MonoRuntime />
+        </list>
       </option>
       <option name="selectedOptions">
         <list />
@@ -147,6 +165,7 @@
       <workItem from="1761420922546" duration="6215000" />
       <workItem from="1761503686769" duration="138000" />
       <workItem from="1761504067001" duration="2030000" />
+      <workItem from="1761571004640" duration="21613000" />
     </task>
     <servers />
   </component>
@@ -178,6 +197,19 @@
           <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
           <option name="timeStamp" value="3" />
         </breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Assets/PurrNet/Runtime/BitPacker/Packer.cs</url>
+          <line>493</line>
+          <properties documentPath="J:\Cours\Quete 2 LethalCompany\PB3-Q2-2025\Assets\PurrNet\Runtime\BitPacker\Packer.cs" containingFunctionPresentation="Method 'Read'">
+            <startOffsets>
+              <option value="14962" />
+            </startOffsets>
+            <endOffsets>
+              <option value="14963" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>

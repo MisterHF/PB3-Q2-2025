@@ -1,5 +1,3 @@
-// File: `Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs`
-
 #if !(UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || STEAMWORKS_WIN || STEAMWORKS_LIN_OSX)
 #define DISABLESTEAMWORKS
 #endif
@@ -46,17 +44,35 @@ namespace PurrNet.Steam
 
         public void AddOrUpdate(PlayerInfo p)
         {
+            Debug.Log("Add");
             if (p == null || string.IsNullOrWhiteSpace(p.Name)) return;
+            Debug.Log("Not Null");
             var name = p.Name.Trim();
+            Debug.Log(name);
             var idx = Players.FindIndex(x => string.Equals(x?.Name?.Trim(), name, StringComparison.OrdinalIgnoreCase));
-            if (idx >= 0) Players[idx] = p;
-            else Players.Add(p);
+            if (idx >= 0)
+            {
+                Players[idx] = p;
+            }
+            else
+            {
+                Players.Add(p);
+                Debug.Log(Players.Count);
+                Debug.Log($"Added To Players in Lobby : {HostName}");
+            }
         }
 
         public void RemoveByName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return;
             Players.RemoveAll(x => string.Equals(x?.Name?.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Nouvelle méthode : suppression par Id
+        public void RemoveById(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return;
+            Players.RemoveAll(x => string.Equals(x?.Id?.Trim(), id.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
         public void Clear()
@@ -84,6 +100,9 @@ namespace PurrNet.Steam
     [DefaultExecutionOrder(-100)]
     public class SteamTransport : GenericTransport, ITransport
     {
+        // -------------------------
+        // Serialized inspector fields
+        // -------------------------
         [Header("Server Settings")] [SerializeField]
         private ushort _serverPort = 5003;
 
@@ -93,6 +112,11 @@ namespace PurrNet.Steam
         [Header("Client Settings")] [SerializeField]
         private string _address = "127.0.0.1";
 
+        [Header("Debug")] [SerializeField] private bool enableDebugLogs = true;
+
+        // -------------------------
+        // Properties
+        // -------------------------
         public ushort serverPort
         {
             get => _serverPort;
@@ -125,57 +149,69 @@ namespace PurrNet.Steam
 
         public override ITransport transport => this;
 
-        private readonly List<Connection> _connections = new List<Connection>();
-        public IReadOnlyList<Connection> connections => _connections;
-
-        private ConnectionState _listenerState = ConnectionState.Disconnected;
-
-        public ConnectionState listenerState
-        {
-            get => _listenerState;
-            private set
-            {
-                if (_listenerState == value)
-                    return;
-                _listenerState = value;
-                onConnectionState?.Invoke(_listenerState, true);
-            }
-        }
-
-        private ConnectionState _clientState = ConnectionState.Disconnected;
-
-        public ConnectionState clientState
-        {
-            get => _clientState;
-            private set
-            {
-                if (_clientState == value)
-                    return;
-                _clientState = value;
-                onConnectionState?.Invoke(_clientState, false);
-            }
-        }
-
+        // -------------------------
+        // Events
+        // -------------------------
         public event OnConnected onConnected;
         public event OnDisconnected onDisconnected;
         public event OnDataReceived onDataReceived;
         public event OnDataSent onDataSent;
         public event OnConnectionState onConnectionState;
 
-        // Nouveaux événements pour UI/lobby
+        // UI / lobby events
         public event Action<LobbyData, bool> OnLobbyUpdated; // bool = asServer
-        public event Action<List<string>, bool> OnPlayerConnected; // liste de pseudos clients seulement
+        public event Action<List<string>, bool> OnPlayerConnected; // client-only names
+
+        // -------------------------
+        // Private fields
+        // -------------------------
+        private readonly List<Connection> _connections = new List<Connection>();
+        public IReadOnlyList<Connection> connections => _connections;
+
+        private ConnectionState _listenerState = ConnectionState.Disconnected;
+        private ConnectionState _clientState = ConnectionState.Disconnected;
 
         private SteamServer _server;
         private SteamClient _client;
 
-        // Liste locale "Players" (clients) manipulée à partir des messages LOBBY/PLAYERINFO
-        private readonly List<string> Players = new List<string>();
-        private readonly List<string> _clientOnlyNames = new List<string>();
+        // Local players / lobby (maintained only by SendToServer)
+        [SerializeField] private LobbyData lobby = new LobbyData();
 
-        // Holder serveur (et client local miroir)
-        [SerializeField] private readonly LobbyData _lobby = new LobbyData();
+        private Coroutine _connectClientCoroutine;
 
+        // -------------------------
+        // Connection state props
+        // -------------------------
+        public ConnectionState listenerState
+        {
+            get => _listenerState;
+            private set
+            {
+                if (_listenerState == value) return;
+                _listenerState = value;
+                onConnectionState?.Invoke(_listenerState, true);
+            }
+        }
+
+        public ConnectionState clientState
+        {
+            get => _client_state();
+            private set
+            {
+                if (_clientState == value) return;
+                _clientState = value;
+                onConnectionState?.Invoke(_clientState, false);
+            }
+        }
+
+        private ConnectionState _client_state()
+        {
+            return _clientState;
+        }
+
+        // -------------------------
+        // Unity / GenericTransport overrides
+        // -------------------------
         protected override void StartClientInternal()
         {
             Connect(_address, _serverPort);
@@ -186,24 +222,22 @@ namespace PurrNet.Steam
             Listen(_serverPort);
         }
 
+        // -------------------------
+        // Server Listen / Stop
+        // -------------------------
         public void Listen(ushort port)
         {
-            if (_server != null)
-                StopListening();
+            if (_server != null) StopListening();
 
             listenerState = ConnectionState.Connecting;
 
             _server = new SteamServer();
 
-            if (_peerToPeer)
-                _server.ListenP2P(_dedicatedServer);
+            if (_peerToPeer) _server.ListenP2P(_dedicatedServer);
             else _server.Listen(port, _dedicatedServer);
 
-            if (_server.listening)
-            {
-                listenerState = ConnectionState.Connected;
-            }
-            else
+            listenerState = _server.listening ? ConnectionState.Connected : ConnectionState.Disconnected;
+            if (!_server.listening)
             {
                 listenerState = ConnectionState.Disconnecting;
                 listenerState = ConnectionState.Disconnected;
@@ -214,81 +248,76 @@ namespace PurrNet.Steam
             _server.onRemoteDisconnected += OnRemoteDisconnected;
         }
 
+        public void StopListening()
+        {
+            if (listenerState != ConnectionState.Disconnected) listenerState = ConnectionState.Disconnecting;
+            _server?.Stop();
+            DbgLog("[SteamTransport] StopListening - stopping server");
+            lobby.Clear();
+            listenerState = ConnectionState.Disconnected;
+            _server = null;
+        }
+
+        // -------------------------
+        // Server callbacks
+        // -------------------------
         private void OnRemoteConnected(int obj)
         {
-            Debug.Log($"[SteamTransport] OnRemoteConnected - raw id={obj}");
+            DbgLog($"[SteamTransport] OnRemoteConnected - raw id={obj}");
 
-            // accepter 0 aussi pour P2P
             if (obj < 0)
             {
-                Debug.LogWarning($"[SteamTransport] Ignoring remote connected with invalid id={obj}");
+                DbgWarn($"[SteamTransport] Ignoring remote connected with invalid id={obj}");
                 return;
             }
 
-            // éviter doublons
             if (!_connections.Any(c => c.connectionId == obj))
             {
                 var conn = new Connection(obj);
                 _connections.Add(conn);
-                Debug.Log($"[SteamTransport] Added connection id={obj} totalConnections={_connections.Count}");
+                DbgLog($"[SteamTransport] Added connection id={obj} totalConnections={_connections.Count}");
                 onConnected?.Invoke(conn, true);
-
-                // envoyer immédiatement le lobby au nouvel arrivant
-                try
-                {
-                    SendToClient(conn, BuildLobbyDataHolder(), Channel.ReliableOrdered);
-                    Debug.Log($"[SteamTransport] Sent initial LOBBY to conn={obj}");
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"[SteamTransport] Failed to send initial LOBBY to conn={obj}: {e.Message}");
-                }
             }
             else
             {
-                Debug.Log($"[SteamTransport] Connection id={obj} already present");
+                DbgLog($"[SteamTransport] Connection id={obj} already present");
             }
-
-            // si host non défini et il y a des players dans le lobby, définir proprement
-            if (string.IsNullOrEmpty(_lobby.HostName) && _lobby.Players.Count > 0)
-                _lobby.HostName = _lobby.Players[0].Name;
         }
 
         private void OnRemoteDisconnected(int obj)
         {
-            Debug.Log($"[SteamTransport] OnRemoteDisconnected - raw id={obj}");
+            DbgLog($"[SteamTransport] OnRemoteDisconnected - raw id={obj}");
 
             if (obj < 0)
             {
-                Debug.LogWarning($"[SteamTransport] Ignoring remote disconnected with invalid id={obj}");
+                DbgWarn($"[SteamTransport] Ignoring remote disconnected with invalid id={obj}");
                 return;
             }
 
-            // tenter de récupérer un pseudo associé dans le lobby
-            var disconnectedName = FindNameByConnectionId(obj);
-            if (!string.IsNullOrEmpty(disconnectedName))
-            {
-                _lobby.RemoveByName(disconnectedName);
-                RemovePlayerByName(disconnectedName);
-                Debug.Log(
-                    $"[SteamTransport] Removed player '{disconnectedName}' from lobby due to disconnect id={obj}");
-                BroadcastLobby();
-            }
-
             _connections.RemoveAll(c => c.connectionId == obj);
-            Debug.Log($"[SteamTransport] Connection removed id={obj} remaining={_connections.Count}");
+            DbgLog($"[SteamTransport] Connection removed id={obj} remaining={_connections.Count}");
+
+            // Supprimer du lobby côté serveur et notifier
+            try
+            {
+                lobby.RemoveById(obj.ToString());
+                OnLobbyUpdated?.Invoke(lobby, true);
+            }
+            catch (Exception e)
+            {
+                DbgWarn($"[SteamTransport] failed to update lobby on disconnect: {e.Message}");
+            }
 
             onDisconnected?.Invoke(new Connection(obj), DisconnectReason.ClientRequest, true);
         }
 
         private void OnServerData(int conn, ByteData data)
         {
-            // Décodage sécurisé
-            string message = TryDecodeMessage(data);
-
-            if (!string.IsNullOrEmpty(message))
+            // Traitement serveur pour les messages PLAYERINFO:JSON
+            try
             {
-                if (message.StartsWith("PLAYERINFO:"))
+                var message = TryDecodeMessage(data);
+                if (!string.IsNullOrEmpty(message) && message.StartsWith("PLAYERINFO:"))
                 {
                     var json = message.Substring("PLAYERINFO:".Length);
                     var p = SafeFromJson<PlayerInfo>(json);
@@ -297,61 +326,48 @@ namespace PurrNet.Steam
                         var nameNormalized = NormalizeName(p.Name);
                         if (!string.IsNullOrEmpty(nameNormalized))
                         {
-                            p.Name = nameNormalized; // normaliser dans le holder
-                            p.Id = conn.ToString(); // associer l'id de connexion au PlayerInfo
-                            _lobby.AddOrUpdate(p);
+                            p.Name = nameNormalized;
+                            // Assigner un Id côté serveur si absent (utiliser l'id de connexion)
+                            if (string.IsNullOrEmpty(p.Id))
+                            {
+                                p.Id = conn.ToString();
+                            }
+#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
+                            // Optionnel : tenter d'obtenir SteamID si disponible côté serveur
+                            try
+                            {
+                                if (string.IsNullOrEmpty(p.Id))
+                                    p.Id = SteamUser.GetSteamID().ToString();
+                            }
+                            catch
+                            {
+                            }
+#endif
+                            lobby.AddOrUpdate(p);
+                            if (string.IsNullOrEmpty(lobby.HostName) && lobby.Players.Count > 0)
+                                lobby.HostName = lobby.Players[0].Name;
 
-                            // mettre à jour Players list serveur-side (pour event OnPlayerConnected)
-                            if (!PlayersContainsNormalized(p.Name))
-                                Players.Add(p.Name);
-
-                            Debug.Log(
-                                $"[SteamTransport] OnServerData - PLAYERINFO from conn={conn} name={p.Name} id={p.Id}");
-                            BroadcastLobby();
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"[SteamTransport] PLAYERINFO rejected (invalid name) from conn={conn}");
+                            OnLobbyUpdated?.Invoke(lobby, true);
+                            DbgLog($"[SteamTransport] Server lobby updated with PLAYERINFO name={p.Name} (conn={conn})");
                         }
                     }
-
-                    return;
-                }
-                else if (message.StartsWith("REQUEST_LOBBY"))
-                {
-                    var target = _connections.Find(c => c.connectionId == conn);
-                    if (target != null)
-                    {
-                        SendToClient(target, BuildLobbyDataHolder(), Channel.ReliableOrdered);
-                        Debug.Log($"[SteamTransport] REQUEST_LOBBY served to conn={conn}");
-                    }
-
-                    return;
                 }
             }
+            catch (Exception e)
+            {
+                DbgWarn($"[SteamTransport] OnServerData - lobby update failed: {e.Message}");
+            }
 
-            // Forward non-lobby messages
+            // Transmettre l'événement de donnée au reste du système
             onDataReceived?.Invoke(new Connection(conn), data, true);
         }
 
-        public void StopListening()
-        {
-            if (listenerState != ConnectionState.Disconnected)
-                listenerState = ConnectionState.Disconnecting;
-            _server?.Stop();
-            Debug.Log("[SteamTransport] StopListening - stopping server and clearing Players and lobby");
-            Players.Clear();
-            _lobby.Clear();
-            listenerState = ConnectionState.Disconnected;
-            _server = null;
-        }
-
-        private Coroutine _connectClientCoroutine;
-
+        // -------------------------
+        // Client connection
+        // -------------------------
         public void Connect(string ip, ushort port)
         {
-            if (_client != null)
-                Disconnect();
+            if (_client != null) Disconnect();
 
             _client = new SteamClient();
             _client.onConnectionState += OnClientStateChanged;
@@ -362,104 +378,6 @@ namespace PurrNet.Steam
                 : _client.Connect(ip, port, _dedicatedServer));
         }
 
-        private void OnClientDataReceived(ByteData data)
-        {
-            // Décodage et traitement des messages LOBBY: sur le client
-            string message = TryDecodeMessage(data);
-
-            if (!string.IsNullOrEmpty(message))
-            {
-                if (message.StartsWith("LOBBY:"))
-                {
-                    var json = message.Substring("LOBBY:".Length);
-                    var remoteLobby = LobbyData.FromJson(json);
-
-                    // Mettre à jour liste locale Players (dédup + normalisation)
-                    Players.Clear();
-                    var added = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var pi in remoteLobby.Players)
-                    {
-                        var n = NormalizeName(pi?.Name);
-                        if (string.IsNullOrEmpty(n)) continue;
-                        if (added.Add(n)) Players.Add(n);
-                    }
-
-                    // Mettre à jour holder local (miroir)
-                    _lobby.Clear();
-                    _lobby.HostName = remoteLobby.HostName;
-                    foreach (var pi in remoteLobby.Players) _lobby.AddOrUpdate(pi);
-
-                    UpdateClientOnlyNames();
-
-                    Debug.Log($"[SteamTransport] OnClientDataReceived - LOBBY received ({_lobby.Players.Count})");
-                    OnLobbyUpdated?.Invoke(_lobby, false);
-                    OnPlayerConnected?.Invoke(new List<string>(_clientOnlyNames), false);
-                    return;
-                }
-            }
-
-            // Forward autres messages
-            onDataReceived?.Invoke(new Connection(-1), data, false);
-        }
-
-        private void OnClientStateChanged(ConnectionState state)
-        {
-            string _localName = GetLocalDisplayName();
-            Debug.Log($"[SteamTransport] OnClientStateChanged - state={state} localName={_localName}");
-
-            if (state == ConnectionState.Connected)
-            {
-                // envoyer PlayerInfo au serveur après connexion (avec SteamID si possible)
-                try
-                {
-                    var info = new PlayerInfo(_localName);
-#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
-                    try
-                    {
-                        var steamId = SteamUser.GetSteamID().ToString();
-                        info.Id = steamId;
-                    }
-                    catch
-                    {
-                        /* ignore si Steam non accessible */
-                    }
-#endif
-                    string payload = "PLAYERINFO:" + JsonUtility.ToJson(info);
-                    byte[] bytes = Encoding.UTF8.GetBytes(payload);
-                    var reqData = new ByteData(bytes);
-                    SendToServer(reqData, Channel.ReliableOrdered);
-                    Debug.Log("[SteamTransport] Sent PLAYERINFO to server");
-
-                    // demander explicitement le lobby au serveur (sécurité si broadcast manqué)
-                    try
-                    {
-                        byte[] req = Encoding.UTF8.GetBytes("REQUEST_LOBBY");
-                        SendToServer(new ByteData(req), Channel.ReliableOrdered);
-                        Debug.Log("[SteamTransport] Sent REQUEST_LOBBY to server");
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogWarning($"[SteamTransport] Send REQUEST_LOBBY failed: {e.Message}");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"[SteamTransport] Send PLAYERINFO failed: {e.Message}");
-                }
-
-                onConnected?.Invoke(default, false);
-            }
-
-            if (state == ConnectionState.Disconnected)
-            {
-                RemovePlayerByName(_localName);
-                Debug.Log($"[SteamTransport] OnClientStateChanged - Disconnected local pseudo removed: {_localName}");
-                onDisconnected?.Invoke(default, DisconnectReason.ClientRequest, false);
-            }
-
-            clientState = state;
-        }
-
         public void Disconnect()
         {
             if (_connectClientCoroutine != null)
@@ -468,27 +386,34 @@ namespace PurrNet.Steam
                 _connectClientCoroutine = null;
             }
 
-            if (_client == null)
-                return;
-
+            if (_client == null) return;
+            
             _client.Stop();
             _client = null;
 
-            string _localName = GetLocalDisplayName();
-            RemovePlayerByName(_localName);
-            Debug.Log($"[SteamTransport] Disconnect - local player removed: {_localName}");
+            DbgLog("[SteamTransport] Disconnect - client stopped");
         }
 
-        public void RaiseDataReceived(Connection conn, ByteData data, bool asServer)
+        private void OnClientDataReceived(ByteData data)
         {
-            onDataReceived?.Invoke(conn, data, asServer);
+            // Plus de traitement spécial LOBBY côté client ; on transmet simplement.
+            onDataReceived?.Invoke(new Connection(-1), data, false);
         }
 
-        public void RaiseDataSent(Connection conn, ByteData data, bool asServer)
+        private void OnClientStateChanged(ConnectionState state)
         {
-            onDataSent?.Invoke(conn, data, asServer);
+            if (state == ConnectionState.Connected)
+                onConnected?.Invoke(new Connection(0), false);
+
+            if (state == ConnectionState.Disconnected)
+                onDisconnected?.Invoke(new Connection(0), DisconnectReason.ClientRequest, false);
+
+            clientState = state;
         }
 
+        // -------------------------
+        // Send / Receive wrappers
+        // -------------------------
         public void SendToClient(Connection target, ByteData data, Channel method = Channel.ReliableOrdered)
         {
             if (_server == null) return;
@@ -502,8 +427,18 @@ namespace PurrNet.Steam
         public void SendToServer(ByteData data, Channel method = Channel.ReliableOrdered)
         {
             if (_client == null) return;
-            _client.Send(data, method);
-            RaiseDataSent(default, data, false);
+
+            // Le client n'update plus localement le lobby.
+            // Les messages PLAYERINFO:... sont envoyés au serveur qui mettra à jour le lobby.
+            try
+            {
+                _client.Send(data, method);
+                RaiseDataSent(default, data, false);
+            }
+            catch (Exception e)
+            {
+                DbgWarn($"[SteamTransport] SendToServer failed: {e.Message}");
+            }
         }
 
         public void CloseConnection(Connection conn)
@@ -523,33 +458,19 @@ namespace PurrNet.Steam
             _client?.SendMessages();
         }
 
-        // ---------------------
-        // Helpers / Lobby logic
-        // ---------------------
-
-        private ByteData BuildLobbyDataHolder()
+        public void RaiseDataReceived(Connection conn, ByteData data, bool asServer)
         {
-            string payload = "LOBBY:" + _lobby.ToJson();
-            byte[] bytes = Encoding.UTF8.GetBytes(payload);
-            return new ByteData(bytes);
+            onDataReceived?.Invoke(conn, data, asServer);
         }
 
-        private void BroadcastLobby()
+        public void RaiseDataSent(Connection conn, ByteData data, bool asServer)
         {
-            var data = BuildLobbyDataHolder();
-            foreach (var conn in _connections)
-            {
-                if (!conn.isValid) continue;
-                SendToClient(conn, data, Channel.ReliableOrdered);
-            }
-
-            Debug.Log($"[SteamTransport] BroadcastLobby - players={_lobby.Players.Count}");
-            // Notifier localement côté serveur également si utile
-            OnLobbyUpdated?.Invoke(_lobby, true);
-            UpdateClientOnlyNames();
-            OnPlayerConnected?.Invoke(new List<string>(_clientOnlyNames), true);
+            onDataSent?.Invoke(conn, data, asServer);
         }
 
+        // -------------------------
+        // Lobby helpers (utilisées uniquement par SendToServer)
+        // -------------------------
         private static T SafeFromJson<T>(string json) where T : class
         {
             if (string.IsNullOrEmpty(json)) return null;
@@ -568,25 +489,22 @@ namespace PurrNet.Steam
             try
             {
                 var bytes = ExtractBytesFromByteData(data);
-                if (bytes != null && bytes.Length > 0)
-                    return Encoding.UTF8.GetString(bytes);
+                if (bytes != null && bytes.Length > 0) return Encoding.UTF8.GetString(bytes);
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[SteamTransport] decode failed: {e.Message}");
+                DbgWarn($"[SteamTransport] decode failed: {e.Message}");
             }
 
             return null;
         }
 
-        // Tentative générique pour récupérer le tableau d'octets depuis ByteData (réflexion fallback)
         private byte[] ExtractBytesFromByteData(ByteData data)
         {
             try
             {
-                // Try common property/method names
                 var type = data.GetType();
-                // property "bytes" or "data" or "buffer"
+
                 var prop = type.GetProperty("bytes",
                                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                            ?? type.GetProperty("data",
@@ -599,7 +517,6 @@ namespace PurrNet.Steam
                     if (val is byte[] b1) return b1;
                 }
 
-                // field "bytes" or "data" or "buffer"
                 var field = type.GetField("bytes", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                             ?? type.GetField("data",
                                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
@@ -611,7 +528,6 @@ namespace PurrNet.Steam
                     if (val is byte[] b2) return b2;
                 }
 
-                // method ToArray or GetBytes
                 var method = type.GetMethod("ToArray",
                                  BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                              ?? type.GetMethod("GetBytes",
@@ -622,7 +538,6 @@ namespace PurrNet.Steam
                     if (res is byte[] b3) return b3;
                 }
 
-                // as fallback, try ToString then decode base64 (unlikely)
                 var ts = data.ToString();
                 if (!string.IsNullOrEmpty(ts))
                 {
@@ -637,7 +552,6 @@ namespace PurrNet.Steam
             }
             catch
             {
-                // ignore
             }
 
             return null;
@@ -646,97 +560,31 @@ namespace PurrNet.Steam
         private static string NormalizeName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return null;
-            var t = name.Trim();
-            // interdiction des pseudos contenant des chiffres (si demandé)
-            return t;
+            return name.Trim();
         }
 
-        private bool PlayersContainsNormalized(string name)
+        // -------------------------
+        // Debug helpers
+        // -------------------------
+        private void DbgLog(string message, UnityEngine.Object context = null)
         {
-            var n = NormalizeName(name);
-            if (n == null) return false;
-            return Players.Any(p => string.Equals(NormalizeName(p), n, StringComparison.OrdinalIgnoreCase));
+            if (!enableDebugLogs) return;
+            if (context != null) Debug.Log(message, context);
+            else Debug.Log(message);
         }
 
-        private bool AddPlayerUnique(string name)
+        private void DbgWarn(string message, UnityEngine.Object context = null)
         {
-            var n = NormalizeName(name);
-            if (n == null) return false;
-            if (PlayersContainsNormalized(n)) return false;
-            Players.Add(n);
-            return true;
+            if (!enableDebugLogs) return;
+            if (context != null) Debug.LogWarning(message, context);
+            else Debug.LogWarning(message);
         }
 
-        private void RemovePlayerByName(string name)
+        private void DbgError(string message, UnityEngine.Object context = null)
         {
-            var n = NormalizeName(name) ?? name?.Trim();
-            if (string.IsNullOrEmpty(n)) return;
-            var toRemove =
-                Players.FirstOrDefault(p => string.Equals(NormalizeName(p), n, StringComparison.OrdinalIgnoreCase));
-            if (toRemove != null) Players.Remove(toRemove);
-
-            // also remove from lobby
-            _lobby.RemoveByName(n);
-        }
-
-        private void UpdateClientOnlyNames()
-        {
-            _clientOnlyNames.Clear();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var p in Players)
-            {
-                var t = NormalizeName(p);
-                if (t == null) continue;
-                if (seen.Add(t))
-                    _clientOnlyNames.Add(t);
-            }
-
-            Debug.Log($"[SteamTransport] UpdateClientOnlyNames - count={_clientOnlyNames.Count}");
-        }
-
-        // Essai simple de résolution du nom distant depuis id
-        private string GetRemoteDisplayNameFromId(int id)
-        {
-            // si vous avez une API Steam disponible, remplacez cette implémentation
-            // par la lecture du nom via Steamworks/identifiant.
-            // Ici, on tente de retrouver dans le lobby si possible
-            var player = _lobby.Players.FirstOrDefault(p => p.Id == id.ToString());
-            if (player != null) return player.Name;
-            return $"Player_{id}";
-        }
-
-        private string GetLocalDisplayName()
-        {
-#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
-            try
-            {
-                var steamName = SteamFriends.GetPersonaName().ToLower();
-                if (!string.IsNullOrWhiteSpace(steamName))
-                {
-                    var n = NormalizeName(steamName);
-                    if (!string.IsNullOrEmpty(n)) return n;
-                    // si la normalisation la rejette (ex: chiffres interdits), retombe sur le raw steamName nettoyé
-                    return steamName.Trim();
-                }
-            }
-            catch
-            {
-                // ignore si Steam non accessible
-            }
-#endif
-
-            // fallback neutre (ne pas exposer le nom Windows)
-            return "Player";
-        }
-
-        // tentative de recherche du pseudo associé à une connexion
-        private string FindNameByConnectionId(int connectionId)
-        {
-            // si PlayerInfo.Id contient l'id de connexion (non garanti), on lira cela
-            var pi = _lobby.Players.FirstOrDefault(p => p.Id == connectionId.ToString());
-            if (pi != null) return pi.Name;
-            // fallback: tenter de retourner Player_{id}
-            return $"Player_{connectionId}";
+            if (!enableDebugLogs) return;
+            if (context != null) Debug.LogError(message, context);
+            else Debug.LogError(message);
         }
     }
 }
