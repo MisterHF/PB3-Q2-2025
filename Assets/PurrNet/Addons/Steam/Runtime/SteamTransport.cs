@@ -23,18 +23,18 @@ namespace PurrNet.Steam
     public class PlayerInfo
     {
         public string Name;
-        public string AvatarUrl;
+        public Texture2D AvatarUrl;
         public string Id;
 
         public PlayerInfo()
         {
         }
 
-        public PlayerInfo(string name, string avatarUrl = "", string id = null)
+        public PlayerInfo(string _Name, Texture2D _AvatarUrl = null, string _ID = null)
         {
-            Name = name;
-            AvatarUrl = avatarUrl;
-            Id = id;
+            Name = _Name;
+            AvatarUrl = _AvatarUrl;
+            Id = _ID;
         }
     }
 
@@ -412,7 +412,7 @@ namespace PurrNet.Steam
                 // envoyer PlayerInfo au serveur après connexion (avec SteamID si possible)
                 try
                 {
-                    var info = new PlayerInfo(_localName, avatarUrl: "");
+                    var info = new PlayerInfo(_localName);
 #if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
                     try
                     {
