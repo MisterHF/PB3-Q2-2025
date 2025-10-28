@@ -2,6 +2,6 @@
   "stripCodeMode": 0,
   "guardFailureAction": 0,
   "toolbarMode": 0,
-  "toolbarTransportDropDown": false,
+  "toolbarTransportDropDown": true,
   "stripServerCode": false
 }

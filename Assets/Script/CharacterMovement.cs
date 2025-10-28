@@ -24,13 +24,13 @@ namespace Script
         [SerializeField] private float maxLookAngle = 80f;
 
         [Header("References")] [SerializeField]
-        private CinemachineCamera playerCamera;
+        private Camera playerCamera;
         [SerializeField]
         private GameObject holder;
 
         public GameObject Holder => holder;
 
-        public CinemachineCamera PlayerCamera => playerCamera;
+        public Camera PlayerCamera => playerCamera;
 
         private CharacterController characterController;
         private Vector3 velocity;

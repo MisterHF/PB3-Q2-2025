@@ -313,7 +313,6 @@ namespace PurrNet.Steam
 
         private void OnServerData(int conn, ByteData data)
         {
-            // Traitement serveur pour les messages PLAYERINFO:JSON
             try
             {
                 var message = TryDecodeMessage(data);
@@ -427,9 +426,6 @@ namespace PurrNet.Steam
         public void SendToServer(ByteData data, Channel method = Channel.ReliableOrdered)
         {
             if (_client == null) return;
-
-            // Le client n'update plus localement le lobby.
-            // Les messages PLAYERINFO:... sont envoyés au serveur qui mettra à jour le lobby.
             try
             {
                 _client.Send(data, method);

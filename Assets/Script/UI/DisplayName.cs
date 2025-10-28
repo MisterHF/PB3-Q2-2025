@@ -8,11 +8,31 @@ namespace Script.UI
     public class DisplayName : NetworkBehaviour
     {
         private TextMeshProUGUI pseudo;
-        private void OnEnable()
+
+        protected override void OnSpawned()
         {
-            if(!isOwner) return;
+            base.OnSpawned();
             pseudo = GetComponent<TextMeshProUGUI>();
-            pseudo.text = SteamFriends.GetPersonaName();
+
+            if (isOwner)
+            {
+                var _localName = SteamFriends.GetPersonaName();
+                SetNameServerRpc(_localName);
+                if (pseudo != null) pseudo.text = _localName;
+            }
+        }
+        
+        [ServerRpc(requireOwnership: false)]
+        private void SetNameServerRpc(string _Name)
+        {
+            UpdateNameClientRpc(_Name);
+        }
+
+        [ObserversRpc]
+        private void UpdateNameClientRpc(string _Name)
+        {
+            if (pseudo == null) pseudo = GetComponent<TextMeshProUGUI>();
+            if (pseudo != null) pseudo.text = _Name;
         }
     }
 }
