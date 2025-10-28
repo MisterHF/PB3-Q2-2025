@@ -21,17 +21,19 @@ namespace PurrNet.Steam
     public class PlayerInfo
     {
         public string Name;
-        public Texture2D AvatarUrl;
-        public string Id;
+        public string AvatarUrl;
+        [NonSerialized] public Texture2D AvatarTexture;
+        public CSteamID Id;
 
         public PlayerInfo()
         {
         }
 
-        public PlayerInfo(string _Name, Texture2D _AvatarUrl = null, string _ID = null)
+        public PlayerInfo(string _Name, CSteamID _ID, string _AvatarUrl = null, Texture2D _AvatarTexture = null)
         {
             Name = _Name;
             AvatarUrl = _AvatarUrl;
+            AvatarTexture = _AvatarTexture;
             Id = _ID;
         }
     }
@@ -72,7 +74,7 @@ namespace PurrNet.Steam
         public void RemoveById(string id)
         {
             if (string.IsNullOrWhiteSpace(id)) return;
-            Players.RemoveAll(x => string.Equals(x?.Id?.Trim(), id.Trim(), StringComparison.OrdinalIgnoreCase));
+            Players.RemoveAll(x => string.Equals(x.Id.ToString(), id.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
         public void Clear()
@@ -275,6 +277,8 @@ namespace PurrNet.Steam
             {
                 var conn = new Connection(obj);
                 _connections.Add(conn);
+                OnLobbyUpdated?.Invoke(lobby, true);
+
                 DbgLog($"[SteamTransport] Added connection id={obj} totalConnections={_connections.Count}");
                 onConnected?.Invoke(conn, true);
             }
@@ -327,22 +331,6 @@ namespace PurrNet.Steam
                         if (!string.IsNullOrEmpty(nameNormalized))
                         {
                             p.Name = nameNormalized;
-                            // Assigner un Id côté serveur si absent (utiliser l'id de connexion)
-                            if (string.IsNullOrEmpty(p.Id))
-                            {
-                                p.Id = conn.ToString();
-                            }
-#if STEAMWORKS_NET_PACKAGE && !DISABLESTEAMWORKS
-                            // Optionnel : tenter d'obtenir SteamID si disponible côté serveur
-                            try
-                            {
-                                if (string.IsNullOrEmpty(p.Id))
-                                    p.Id = SteamUser.GetSteamID().ToString();
-                            }
-                            catch
-                            {
-                            }
-#endif
                             lobby.AddOrUpdate(p);
                             if (string.IsNullOrEmpty(lobby.HostName) && lobby.Players.Count > 0)
                                 lobby.HostName = lobby.Players[0].Name;
@@ -596,6 +584,12 @@ namespace PurrNet.Steam
         {
             if (string.IsNullOrWhiteSpace(name)) return null;
             return name.Trim();
+        }
+
+        [ContextMenu("Debug Log")]
+        public void Test()
+        {
+            OnLobbyUpdated.Invoke(lobby, true);
         }
 
         // -------------------------

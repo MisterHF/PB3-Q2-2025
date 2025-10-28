@@ -1571,6 +1571,9 @@ MonoBehaviour:
   PlayerPrefabUI: {fileID: 1550767920477336527, guid: 10e54a27fa2419b46b2426661b760034, type: 3}
   Viewport: {fileID: 587728027}
   DefaultAvatar: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  lobby:
+    HostName: 
+    Players: []
 --- !u!114 &1005497635
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4224,6 +4227,7 @@ MonoBehaviour:
   returnButton: {fileID: 1771260699}
   hostTextField: {fileID: 1913736445}
   clientInputField: {fileID: 1834895340}
+  updateLobby: {fileID: 1005497634}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

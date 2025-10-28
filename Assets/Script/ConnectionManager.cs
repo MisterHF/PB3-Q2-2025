@@ -15,7 +15,7 @@ using PlayerInfo = PurrNet.Steam.PlayerInfo;
 
 namespace Script
 {
-    public sealed class ConnectionManager : NetworkIdentity
+    public sealed class ConnectionManager : MonoBehaviour
     {
         [SerializeField] private Button hostButton;
 
@@ -28,6 +28,7 @@ namespace Script
         [SerializeField] private Button returnButton;
         [SerializeField] private CopyButton hostTextField;
         [SerializeField] private TMP_InputField clientInputField;
+        [SerializeField] private UpdateLobbyList updateLobby;
         private SteamTransport transport;
         public static readonly UnityEvent UpdateLobbyEvent = new UnityEvent();
 
@@ -35,7 +36,6 @@ namespace Script
 
         private void Awake()
         {
-            InstanceHandler.RegisterInstance(this);
 
             InitializeSteam();
         }
@@ -68,26 +68,21 @@ namespace Script
             if (transport == null) return;
             var _localName = SteamFriends.GetPersonaName();
             Texture2D _avatar = LoadLocalMediumAvatar(SteamUser.GetSteamID());
-            var _info = new PlayerInfo(_localName, _avatar);
+            var _info = new PlayerInfo(_localName, SteamUser.GetSteamID(), "", _avatar);
             string _payload = "PLAYERINFO:" + JsonUtility.ToJson(_info);
             byte[] _bytes = System.Text.Encoding.UTF8.GetBytes(_payload);
             Debug.Log("SendToServer !");
             transport.SendToServer(new ByteData(_bytes), Channel.ReliableOrdered);
         }
 
-        private void OnLobbyUpdated(LobbyData lobby, bool asServer)
+        private void OnLobbyUpdated(LobbyData _Lobby, bool _AsServer)
         {
-            // mettre à jour UI avec lobby.players et lobby.hostName
-            Debug.Log($"[ConnectionManager] Lobby updated: host={lobby.HostName} players={lobby.Players.Count}");
-            // UI update logic here...
+            Debug.Log($"[ConnectionManager] Lobby updated: host={_Lobby.HostName} players={_Lobby.Players.Count}");
+            updateLobby.OnPlayerConnected(_Lobby, _AsServer);
         }
-
-        protected override void OnDestroy()
+        
+        private void OnDestroy()
         {
-            base.OnDestroy();
-
-            // désenregistrer et libérer l'instance si c'était la bonne
-            InstanceHandler.UnregisterInstance<ConnectionManager>();
             if (steamInitialized)
             {
 #if !UNITY_EDITOR
@@ -357,7 +352,7 @@ namespace Script
 
         public void Play()
         {
-            networkManager.sceneModule.LoadSceneAsync("Feat-Character");
+            NetworkManager.main.sceneModule.LoadSceneAsync("Feat-Character");
         }
     }
 }
