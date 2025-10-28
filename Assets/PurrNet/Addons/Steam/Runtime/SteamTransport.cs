@@ -447,6 +447,7 @@ namespace PurrNet.Steam
             if (!target.isValid) return;
 
             _server.SendToConnection(target.connectionId, data, method);
+            OnLobbyUpdated.Invoke(lobby, true);
             RaiseDataSent(target, data, true);
         }
 
