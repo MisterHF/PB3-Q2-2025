@@ -302,6 +302,7 @@ namespace PurrNet.Steam
             {
                 lobby.RemoveById(obj.ToString());
                 OnLobbyUpdated?.Invoke(lobby, true);
+                BroadcastLobbyToClients();
             }
             catch (Exception e)
             {
@@ -345,9 +346,10 @@ namespace PurrNet.Steam
                             lobby.AddOrUpdate(p);
                             if (string.IsNullOrEmpty(lobby.HostName) && lobby.Players.Count > 0)
                                 lobby.HostName = lobby.Players[0].Name;
-
                             OnLobbyUpdated?.Invoke(lobby, true);
-                            DbgLog($"[SteamTransport] Server lobby updated with PLAYERINFO name={p.Name} (conn={conn})");
+                            BroadcastLobbyToClients();
+                            DbgLog(
+                                $"[SteamTransport] Server lobby updated with PLAYERINFO name={p.Name} (conn={conn})");
                         }
                     }
                 }
@@ -386,11 +388,48 @@ namespace PurrNet.Steam
             }
 
             if (_client == null) return;
-            
+
             _client.Stop();
             _client = null;
 
             DbgLog("[SteamTransport] Disconnect - client stopped");
+        }
+
+        private void BroadcastLobbyToClients()
+        {
+            try
+            {
+                var _json = lobby.ToJson();
+                var _msg = "LOBBYJSON:" + _json;
+                var _bytes = Encoding.UTF8.GetBytes(_msg);
+
+                object _bdObj = null;
+                var _bdType = typeof(ByteData);
+                var _ctor = _bdType.GetConstructor(new[] { typeof(byte[]) });
+                if (_ctor != null)
+                {
+                    _bdObj = _ctor.Invoke(new object[] { _bytes });
+                }
+                else
+                {
+                    var _create = _bdType.GetMethod("Create",
+                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
+                        new[] { typeof(byte[]) }, null);
+                    if (_create != null)
+                        _bdObj = _create.Invoke(null, new object[] { _bytes });
+                }
+
+                if (_bdObj == null) return;
+
+                var _bd = (ByteData)_bdObj;
+
+                foreach (var c in _connections)
+                    SendToClient(c, _bd);
+            }
+            catch (Exception e)
+            {
+                DbgWarn($"[SteamTransport] BroadcastLobbyToClients failed: {e.Message}");
+            }
         }
 
         private void OnClientDataReceived(ByteData data)

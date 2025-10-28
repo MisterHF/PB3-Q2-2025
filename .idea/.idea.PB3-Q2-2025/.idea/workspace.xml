@@ -6,11 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="659ba532-42dd-4a0a-89eb-7c2d00b4eb78" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.PB3-Q2-2025/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/PlayerTestV3.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefab/PlayerTestV3.prefab" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/PurrNet/Addons/Steam/Runtime/SteamTransport.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Script/CharacterMovement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/CharacterMovement.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Script/UI/DisplayName.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Script/UI/DisplayName.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/PurrNetSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/PurrNetSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,7 +152,7 @@
       <workItem from="1761503686769" duration="138000" />
       <workItem from="1761504067001" duration="2030000" />
       <workItem from="1761571004640" duration="21613000" />
-      <workItem from="1761644013828" duration="1885000" />
+      <workItem from="1761644013828" duration="2860000" />
     </task>
     <servers />
   </component>
