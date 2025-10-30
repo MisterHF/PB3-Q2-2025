@@ -408,13 +408,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildingPrefabs:
   - {fileID: 7944067201338324984, guid: 61593dc7386bf7c4792024e1f84c03e8, type: 3}
-  - {fileID: 8521072493589611815, guid: dcafa9e98154cca4a8767fcf538db903, type: 3}
-  - {fileID: 8285790845026148104, guid: d700efe5dc680724da2036397bf462fe, type: 3}
   - {fileID: 6698321538052900190, guid: 80793deb6bc293441bf96e53186840f7, type: 3}
   buildingCount: 20
   spawnRadius: 20
   tileSize: 2
-  avoidOverlap: 0
+  avoidOverlap: 1
+  spacing: 4
 --- !u!4 &2076432426
 Transform:
   m_ObjectHideFlags: 0
