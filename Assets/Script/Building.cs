@@ -16,18 +16,18 @@ public class Building
         this.width = width;
         this.height = height;
         this.prefab = prefab;
-        myBuildingGrid = new int[width, height];
-        SetFullGrid();
+        SetFullGrid(width, height);
     }
 
 
-    public void SetFullGrid()
+    public void SetFullGrid(int w, int h)
     {
-        for (int i = 0; i < height; i++)
+        myBuildingGrid = new int[w, h];
+        for (int i = 0; i < h; i++)
         {
-            for (int j = 0; j < width; j++)
+            for (int j = 0; j < w; j++)
             {
-                myBuildingGrid[j, i] = TestGrid.one ;
+                    myBuildingGrid[j, i] = TestGrid.one;
             }
         }
     }

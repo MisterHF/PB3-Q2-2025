@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TestGrid : MonoBehaviour
@@ -11,7 +12,6 @@ public class TestGrid : MonoBehaviour
 
     public int[,] myGrid;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         myGrid = new int[width,height];
@@ -24,16 +24,35 @@ public class TestGrid : MonoBehaviour
 
     void PrintBool()
     {
-        string s = ("");
+        string s = "";
+        Dictionary<int, string> colorMap = new Dictionary<int, string>();
+
         for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
             {
-                s += myGrid[j, i];
+                int value = myGrid[j, i];
+
+                if (!colorMap.ContainsKey(value))
+                {
+                    colorMap[value] = GetRandomColorHex();
+                }
+
+                if (value != 0)
+                    s += $"<color={colorMap[value]}>{value}</color>";
+                else
+                    s += "0";
             }
             s += "\n";
         }
-        print(s);
+
+        Debug.Log(s);
+    }
+
+    string GetRandomColorHex()
+    {
+        Color color = new Color(Random.value, Random.value, Random.value);
+        return $"#{ColorUtility.ToHtmlStringRGB(color)}";
     }
 
     void InitGrid()
@@ -47,3 +66,4 @@ public class TestGrid : MonoBehaviour
         }
     }
 }
+ 
