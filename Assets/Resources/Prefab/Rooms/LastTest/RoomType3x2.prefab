@@ -133,7 +133,7 @@ Transform:
   m_GameObject: {fileID: 339917891280903953}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0.00000058114523}
-  m_LocalPosition: {x: 1.8749977, y: 0, z: -2}
+  m_LocalPosition: {x: 2, y: 0, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2498,7 +2498,7 @@ Transform:
   m_GameObject: {fileID: 4481100345126409748}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0.00000058114523}
-  m_LocalPosition: {x: 1.8749977, y: 0, z: -2}
+  m_LocalPosition: {x: 2, y: 0, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3965,7 +3965,7 @@ Transform:
   m_GameObject: {fileID: 7773357198817285698}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0.00000058114523}
-  m_LocalPosition: {x: -1, y: 0, z: -2}
+  m_LocalPosition: {x: -0.8750002, y: 0, z: -1.9999968}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4024,6 +4024,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9103648563518332088}
+  - component: {fileID: 4645982845388656302}
   m_Layer: 0
   m_Name: RoomType3x2
   m_TagString: Untagged
@@ -4049,6 +4050,35 @@ Transform:
   - {fileID: 622392938111963272}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4645982845388656302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8285790845026148104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1ea7c634b5e9ff408a6ebc581e3f873, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  testGrid: {fileID: 0}
+  _directions: 0
+  roomId: 0
+  UpDoor:
+  - {fileID: 1336009009446501159}
+  - {fileID: 7452577911245663474}
+  - {fileID: 3385342969043913161}
+  DownDoor:
+  - {fileID: 294576483437988934}
+  - {fileID: 1845248284739072949}
+  - {fileID: 5451326529134404284}
+  LeftDoor:
+  - {fileID: 5057529052374915836}
+  - {fileID: 3983797847093157779}
+  RightDoor:
+  - {fileID: 4397581827442654769}
+  - {fileID: 2576737706586642553}
 --- !u!1 &8636048937706877629
 GameObject:
   m_ObjectHideFlags: 0
