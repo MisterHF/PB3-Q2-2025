@@ -11,13 +11,13 @@ public class TestGrid : MonoBehaviour
     public int height;
 
     public int[,] myGrid;
-
+    public int mapSeed;
     void Start()
     {
         myGrid = new int[width,height];
         InitGrid();
         PrintBool();
-        BuildManager building = new BuildManager(this);
+        BuildManager building = new BuildManager(this, mapSeed);
         PrintBool();
     }
 

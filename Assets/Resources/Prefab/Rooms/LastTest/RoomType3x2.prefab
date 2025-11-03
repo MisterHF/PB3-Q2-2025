@@ -4066,9 +4066,9 @@ MonoBehaviour:
   _directions: 0
   roomId: 0
   UpDoor:
+  - {fileID: 3385342969043913161}
   - {fileID: 1336009009446501159}
   - {fileID: 7452577911245663474}
-  - {fileID: 3385342969043913161}
   DownDoor:
   - {fileID: 294576483437988934}
   - {fileID: 1845248284739072949}
@@ -4077,8 +4077,8 @@ MonoBehaviour:
   - {fileID: 5057529052374915836}
   - {fileID: 3983797847093157779}
   RightDoor:
-  - {fileID: 4397581827442654769}
   - {fileID: 2576737706586642553}
+  - {fileID: 4397581827442654769}
 --- !u!1 &8636048937706877629
 GameObject:
   m_ObjectHideFlags: 0

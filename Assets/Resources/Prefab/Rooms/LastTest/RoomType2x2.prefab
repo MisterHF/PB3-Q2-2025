@@ -157,8 +157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   testGrid: {fileID: 0}
-  _directions:
-    _direction: 0
+  _directions: 0
   roomId: 0
   UpDoor:
   - {fileID: 3916907098589231287}
@@ -170,8 +169,8 @@ MonoBehaviour:
   - {fileID: 7862818345864046912}
   - {fileID: 6044403157242251872}
   RightDoor:
-  - {fileID: 5412450461083587642}
   - {fileID: 1486555459313386138}
+  - {fileID: 5412450461083587642}
 --- !u!1001 &1989490879794542306
 PrefabInstance:
   m_ObjectHideFlags: 0
